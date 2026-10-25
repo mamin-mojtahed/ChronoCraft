@@ -4,14 +4,16 @@ import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"] });
 
+const basePath = process.env.NEXT_PUBLIC_BASE_PATH || "";
+
 export const metadata: Metadata = {
   title: "ChronoCraft — AI Timeline Visualizer",
   description: "Crafting data into stories, one timeline at a time. Powered by Google Gemini and Knight Lab TimelineJS.",
   keywords: ["timeline", "history", "data visualization", "chronology", "gemini ai", "timelinejs"],
   authors: [{ name: "ChronoCraft Team" }],
   icons: {
-    icon: "./logo.jpeg",
-    apple: "./logo.jpeg",
+    icon: `${basePath}/logo.jpeg`,
+    apple: `${basePath}/logo.jpeg`,
   },
 };
 
@@ -24,8 +26,8 @@ export default function RootLayout({
     <html lang="en">
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <link rel="icon" href="./logo.jpeg" />
-        <link rel="apple-touch-icon" href="./logo.jpeg" />
+        <link rel="icon" href={`${basePath}/logo.jpeg`} />
+        <link rel="apple-touch-icon" href={`${basePath}/logo.jpeg`} />
       </head>
       <body className={`${inter.className} bg-[#F8F6F4] text-brand-950 antialiased`}>
         {children}

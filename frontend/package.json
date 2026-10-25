@@ -5,7 +5,9 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start",
+    "build:pages": "NEXT_PUBLIC_BASE_PATH=/ChronoCraft next build",
+    "preview": "node scripts/preview.mjs",
+    "preview:pages": "npm run build:pages && node scripts/preview.mjs",
     "lint": "next lint"
   },
   "dependencies": {

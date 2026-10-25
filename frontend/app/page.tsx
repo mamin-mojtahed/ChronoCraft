@@ -69,7 +69,8 @@ export default function Home() {
 
   const handleLoadSampleTimeline = async () => {
     try {
-      const res = await fetch("./timeline.json");
+      const basePath = process.env.NEXT_PUBLIC_BASE_PATH || "";
+      const res = await fetch(`${basePath}/timeline.json`);
       if (!res.ok) throw new Error("Could not load sample timeline.json");
       const data = await res.json();
       
@@ -191,7 +192,7 @@ export default function Home() {
             {/* Center Logo Emblem */}
             <div className="relative w-20 h-20 sm:w-24 sm:h-24 rounded-3xl overflow-hidden border-2 border-copper-300 shadow-xl shadow-copper-500/10 mb-6 bg-brand-950 flex-shrink-0">
               <Image
-                src="./logo.jpeg"
+                src={`${process.env.NEXT_PUBLIC_BASE_PATH || ""}/logo.jpeg`}
                 alt="ChronoCraft"
                 width={96}
                 height={96}
