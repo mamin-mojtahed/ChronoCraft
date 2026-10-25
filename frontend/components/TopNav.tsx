@@ -11,7 +11,7 @@ import { v4 as uuidv4 } from "uuid";
 
 export const TopNav: React.FC = () => {
   const { toggleSidebar, sidebarOpen, setSettingsOpen, loadHistory, setTimeline } = useTimelineStore();
-  const [providerInfo, setProviderInfo] = useState({ provider: "gemini", model: "gemini-2.5-flash" });
+  const [providerInfo, setProviderInfo] = useState({ provider: "gemini", model: "gemini-flash-lite-latest" });
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {

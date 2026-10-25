@@ -62,4 +62,6 @@ export interface CachedTimelineRecord {
   timelineData: TimelineData;
   isFavorite?: boolean;
   tags?: string[];
+  isMerged?: boolean;
+  sourceRecordIds?: string[];
 }

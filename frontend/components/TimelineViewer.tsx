@@ -1,9 +1,22 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
-import { TimelineData, TimelineSlide } from "@/types/timeline";
-import { Download, FileJson, Star, Sparkles, ListFilter, Maximize2, Minimize2 } from "lucide-react";
+import { TimelineData } from "@/types/timeline";
+import {
+  Download,
+  FileJson,
+  Star,
+  Sparkles,
+  ListFilter,
+  Maximize2,
+  Minimize2,
+  Split,
+  Combine,
+  Save,
+  GitMerge,
+} from "lucide-react";
 import { useTimelineStore } from "@/store/zustand";
+import { StorageService } from "@/services/storage";
 
 interface TimelineViewerProps {
   data: TimelineData;
@@ -16,7 +29,18 @@ export const TimelineViewer: React.FC<TimelineViewerProps> = ({ data, title }) =
   const [renderKey, setRenderKey] = useState(0);
   const [showOutline, setShowOutline] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const { currentRecord, toggleFavoriteTimeline } = useTimelineStore();
+  const [savedMerged, setSavedMerged] = useState(false);
+
+  const {
+    currentRecord,
+    toggleFavoriteTimeline,
+    mergedSources,
+    mergeMode,
+    setMergeMode,
+    loadHistory,
+  } = useTimelineStore();
+
+  const isMergedTimeline = Boolean(currentRecord?.isMerged || mergedSources.length >= 2);
 
   // Load Knight Lab TimelineJS stylesheet and script dynamically
   useEffect(() => {
@@ -62,14 +86,13 @@ export const TimelineViewer: React.FC<TimelineViewerProps> = ({ data, title }) =
     container.innerHTML = `<div id="${embedId}" style="width: 100%; height: 100%;"></div>`;
 
     try {
-      // Configure Knight Lab options
-      // Setting timenav_height_percentage to 28 guarantees ~72% height is allocated to the slide content!
+      // Knight Lab options
       const options = {
         hash_bookmark: false,
         initial_zoom: 1,
         timenav_position: "bottom",
-        timenav_height_percentage: 28,
-        timenav_mobile_height_percentage: 35,
+        timenav_height_percentage: isMergedTimeline && mergeMode === "parallel" ? 36 : 28,
+        timenav_mobile_height_percentage: 38,
         scale_factor: 1,
         duration: 500,
         slide_padding_lr: 30,
@@ -81,7 +104,7 @@ export const TimelineViewer: React.FC<TimelineViewerProps> = ({ data, title }) =
     } catch (err) {
       console.error("TimelineJS render error:", err);
     }
-  }, [scriptLoaded, data, renderKey]);
+  }, [scriptLoaded, data, renderKey, isMergedTimeline, mergeMode]);
 
   // Handle window resizing
   useEffect(() => {
@@ -106,6 +129,15 @@ export const TimelineViewer: React.FC<TimelineViewerProps> = ({ data, title }) =
     window.print();
   };
 
+  const handleSaveMergedToHistory = async () => {
+    if (currentRecord && isMergedTimeline) {
+      await StorageService.saveTimeline(currentRecord);
+      await loadHistory();
+      setSavedMerged(true);
+      setTimeout(() => setSavedMerged(false), 2500);
+    }
+  };
+
   return (
     <div
       className={`flex flex-col w-full bg-white relative transition-all duration-300 ${
@@ -113,15 +145,26 @@ export const TimelineViewer: React.FC<TimelineViewerProps> = ({ data, title }) =
       }`}
     >
       {/* Timeline Action Header Bar */}
-      <div className="flex items-center justify-between px-4 sm:px-6 py-2.5 border-b border-brand-100 bg-brand-50/90 backdrop-blur-sm z-10">
+      <div className="flex items-center justify-between px-4 sm:px-6 py-2.5 border-b border-brand-100 bg-brand-50/90 backdrop-blur-sm z-10 flex-wrap gap-2">
         <div className="flex items-center gap-3">
           <div className="p-1.5 rounded-lg bg-copper-100 text-copper-700">
-            <Sparkles className="w-4 h-4 text-copper-600" />
+            {isMergedTimeline ? (
+              <GitMerge className="w-4 h-4 text-copper-600" />
+            ) : (
+              <Sparkles className="w-4 h-4 text-copper-600" />
+            )}
           </div>
           <div>
-            <h2 className="font-bold text-brand-900 text-sm sm:text-base leading-tight">
-              {title || data.title?.text?.headline || "Interactive Timeline"}
-            </h2>
+            <div className="flex items-center gap-2">
+              <h2 className="font-bold text-brand-900 text-sm sm:text-base leading-tight">
+                {title || data.title?.text?.headline || "Interactive Timeline"}
+              </h2>
+              {isMergedTimeline && (
+                <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-copper-200 text-copper-900 border border-copper-300">
+                  Merged Comparison
+                </span>
+              )}
+            </div>
             <p className="text-xs text-brand-600">
               {data.events?.length || 0} chronological milestones
               {currentRecord?.provider && (
@@ -133,7 +176,53 @@ export const TimelineViewer: React.FC<TimelineViewerProps> = ({ data, title }) =
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
+          {/* Parallel Swimlanes vs Same Timeline Toggle (Only when merged) */}
+          {isMergedTimeline && (
+            <div className="flex items-center bg-white rounded-xl border border-brand-200 p-0.5 text-xs shadow-sm">
+              <button
+                type="button"
+                onClick={() => setMergeMode("parallel")}
+                className={`px-2.5 py-1 rounded-lg flex items-center gap-1.5 font-medium transition-all ${
+                  mergeMode === "parallel"
+                    ? "bg-copper-400 text-brand-950 font-bold shadow-xs"
+                    : "text-brand-600 hover:text-brand-900"
+                }`}
+                title="Parallel Swimlanes (entries organized on stacked horizontal lines)"
+              >
+                <Split className="w-3.5 h-3.5" />
+                <span>Parallel Lines</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setMergeMode("unified")}
+                className={`px-2.5 py-1 rounded-lg flex items-center gap-1.5 font-medium transition-all ${
+                  mergeMode === "unified"
+                    ? "bg-copper-400 text-brand-950 font-bold shadow-xs"
+                    : "text-brand-600 hover:text-brand-900"
+                }`}
+                title="Unified Timeline (all milestones merged into the same single track)"
+              >
+                <Combine className="w-3.5 h-3.5" />
+                <span>Same Timeline</span>
+              </button>
+            </div>
+          )}
+
+          {/* Save Merged Timeline Button */}
+          {isMergedTimeline && (
+            <button
+              onClick={handleSaveMergedToHistory}
+              disabled={savedMerged}
+              className="p-2 rounded-lg bg-white border border-brand-200 text-xs font-medium text-brand-700 hover:bg-brand-100/60 flex items-center gap-1.5 transition-colors"
+              title="Save this merged comparison into History"
+            >
+              <Save className="w-3.5 h-3.5 text-copper-600" />
+              <span className="hidden sm:inline">{savedMerged ? "Saved!" : "Save Merge"}</span>
+            </button>
+          )}
+
           {/* Outline / All events drawer toggle */}
           <button
             onClick={() => setShowOutline(!showOutline)}
@@ -148,7 +237,7 @@ export const TimelineViewer: React.FC<TimelineViewerProps> = ({ data, title }) =
             <span className="hidden sm:inline">Event List</span>
           </button>
 
-          {currentRecord && (
+          {currentRecord && !isMergedTimeline && (
             <button
               onClick={() => toggleFavoriteTimeline(currentRecord.id)}
               className={`p-2 rounded-lg border text-xs font-medium flex items-center gap-1.5 transition-colors ${
@@ -242,7 +331,11 @@ export const TimelineViewer: React.FC<TimelineViewerProps> = ({ data, title }) =
                       <span className="font-mono font-bold text-copper-700 bg-copper-100/80 px-2 py-0.5 rounded">
                         {dateStr}
                       </span>
-                      <span className="text-[10px] text-brand-400">#{idx + 1}</span>
+                      {evt.group && (
+                        <span className="text-[10px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded bg-brand-200 text-brand-900">
+                          {evt.group}
+                        </span>
+                      )}
                     </div>
                     <h4 className="font-semibold text-xs text-brand-950 mb-1">
                       {evt.text?.headline}

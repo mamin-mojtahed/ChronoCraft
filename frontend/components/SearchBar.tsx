@@ -21,15 +21,22 @@ const PLACEHOLDER_TOPICS = [
 ];
 
 export const SearchBar: React.FC = () => {
-  const [query, setQuery] = useState("");
   const [numEvents, setNumEvents] = useState(12);
   const [showOptions, setShowOptions] = useState(false);
-  const { loading, setLoading, setTimeline, setError, loadHistory, setSettingsOpen } =
-    useTimelineStore();
+  const {
+    searchQuery,
+    setSearchQuery,
+    loading,
+    setLoading,
+    setTimeline,
+    setError,
+    loadHistory,
+    setSettingsOpen,
+  } = useTimelineStore();
 
   const handleSearch = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
-    const trimmed = query.trim();
+    const trimmed = searchQuery.trim();
     if (!trimmed || loading) return;
 
     const settings = SettingsService.getSettings();
@@ -79,7 +86,7 @@ export const SearchBar: React.FC = () => {
       await StorageService.saveTimeline(newRecord);
       setTimeline(result.data, newRecord);
       await loadHistory();
-      setQuery("");
+      setSearchQuery("");
     } catch (err: any) {
       console.error("Search error:", err);
       setError(err.message || "Failed to generate timeline. Please check your API key and connection.");
@@ -97,9 +104,10 @@ export const SearchBar: React.FC = () => {
           </div>
 
           <input
+            id="timeline-research-input"
             type="text"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
             disabled={loading}
             placeholder={
               PLACEHOLDER_TOPICS[Math.floor(Math.random() * PLACEHOLDER_TOPICS.length)]
@@ -123,7 +131,7 @@ export const SearchBar: React.FC = () => {
 
             <button
               type="submit"
-              disabled={loading || !query.trim()}
+              disabled={loading || !searchQuery.trim()}
               className="px-4 py-2 rounded-xl bg-copper-400 hover:bg-copper-500 active:scale-95 disabled:opacity-50 disabled:pointer-events-none text-brand-950 font-bold text-xs sm:text-sm transition-all flex items-center gap-2 shadow-sm shadow-copper-500/20"
             >
               {loading ? (

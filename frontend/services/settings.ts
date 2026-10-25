@@ -22,7 +22,7 @@ const ENV_CONFIG = {
   geminiApiKey: process.env.NEXT_PUBLIC_GEMINI_API_KEY || "",
   openaiApiKey: process.env.NEXT_PUBLIC_OPENAI_API_KEY || "",
   activeProvider: (process.env.NEXT_PUBLIC_DEFAULT_PROVIDER as LLMProviderId) || "gemini",
-  geminiModel: process.env.NEXT_PUBLIC_GEMINI_MODEL || "gemini-2.5-flash",
+  geminiModel: process.env.NEXT_PUBLIC_GEMINI_MODEL || "gemini-flash-lite-latest",
   openaiModel: process.env.NEXT_PUBLIC_OPENAI_MODEL || "gpt-4o-mini",
 };
 
@@ -50,7 +50,11 @@ export const SettingsService = {
 
       const activeProvider =
         (localStorage.getItem(STORAGE_KEYS.ACTIVE_PROVIDER) as LLMProviderId) || ENV_CONFIG.activeProvider;
-      const geminiModel = localStorage.getItem(STORAGE_KEYS.GEMINI_MODEL) || ENV_CONFIG.geminiModel;
+      let geminiModel = localStorage.getItem(STORAGE_KEYS.GEMINI_MODEL) || ENV_CONFIG.geminiModel;
+      if (geminiModel.includes("2.5") || geminiModel.includes("3.8") || !geminiModel) {
+        geminiModel = "gemini-flash-lite-latest";
+        localStorage.setItem(STORAGE_KEYS.GEMINI_MODEL, "gemini-flash-lite-latest");
+      }
       const openaiModel = localStorage.getItem(STORAGE_KEYS.OPENAI_MODEL) || ENV_CONFIG.openaiModel;
       const sidebarStored = localStorage.getItem(STORAGE_KEYS.SIDEBAR_OPEN);
       const sidebarOpen = sidebarStored !== null ? sidebarStored === "true" : DEFAULT_SETTINGS.sidebarOpen;

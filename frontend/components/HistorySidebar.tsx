@@ -15,6 +15,13 @@ import {
   Upload,
   CheckCircle2,
   AlertCircle,
+  Layers,
+  GitMerge,
+  CheckSquare,
+  Square,
+  X,
+  Split,
+  Combine,
 } from "lucide-react";
 import { StorageService } from "@/services/storage";
 import { CachedTimelineRecord, TimelineData } from "@/types/timeline";
@@ -32,7 +39,15 @@ export const HistorySidebar: React.FC = () => {
     toggleFavoriteTimeline,
     currentRecord,
     setTimeline,
-    setError,
+    isMultiSelectMode,
+    toggleMultiSelectMode,
+    selectedHistoryIds,
+    toggleSelectHistoryId,
+    selectAllHistory,
+    clearSelectedHistory,
+    mergeMode,
+    setMergeMode,
+    mergeSelectedTimelines,
   } = useTimelineStore();
 
   const [searchTerm, setSearchTerm] = useState("");
@@ -73,14 +88,11 @@ export const HistorySidebar: React.FC = () => {
       const text = await file.text();
       const parsed = JSON.parse(text);
 
-      // Check if it's a backup format or a single timeline format
       if (Array.isArray(parsed?.timelines) || Array.isArray(parsed)) {
-        // Full backup
         const count = await StorageService.importFromJson(text);
         await loadHistory();
         setImportStatus({ success: true, message: `Imported ${count} timelines!` });
       } else if (parsed?.events && Array.isArray(parsed.events)) {
-        // Single Knight Lab timeline JSON
         const topic = parsed.title?.text?.headline || file.name.replace(/\.[^/.]+$/, "");
         const years = parsed.events
           .map((evt: any) => evt.start_date?.year)
@@ -144,30 +156,124 @@ export const HistorySidebar: React.FC = () => {
         }`}
       >
         {/* Top Header of Sidebar */}
-        <div className="p-4 border-b border-brand-800 flex items-center justify-between bg-brand-950/40">
+        <div className="p-3.5 border-b border-brand-800 flex items-center justify-between bg-brand-950/50">
           <div className="flex items-center gap-2">
             <Clock className="w-4 h-4 text-copper-300" />
-            <h3 className="font-semibold text-sm text-brand-100">Timeline History</h3>
+            <h3 className="font-semibold text-sm text-brand-100">Timelines</h3>
             <span className="text-xs px-2 py-0.5 rounded-full bg-brand-800 text-copper-200 font-mono">
               {history.length}
             </span>
           </div>
 
-          <button
-            onClick={handleNewTimeline}
-            className="flex items-center gap-1 text-xs px-2.5 py-1 rounded-lg bg-copper-400 hover:bg-copper-500 text-brand-950 font-semibold transition-colors shadow-sm"
-            title="Create new timeline"
-          >
-            <Plus className="w-3.5 h-3.5" />
-            <span>New</span>
-          </button>
+          <div className="flex items-center gap-1.5">
+            {/* Multi-select / Compare toggle */}
+            <button
+              onClick={() => toggleMultiSelectMode()}
+              disabled={history.length < 2}
+              className={`p-1.5 rounded-lg text-xs font-medium flex items-center gap-1 transition-colors disabled:opacity-40 ${
+                isMultiSelectMode
+                  ? "bg-copper-400 text-brand-950 font-bold"
+                  : "bg-brand-800 text-brand-300 hover:text-white hover:bg-brand-700"
+              }`}
+              title={isMultiSelectMode ? "Exit multi-select" : "Compare & merge timelines"}
+            >
+              <Layers className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Compare</span>
+            </button>
+
+            <button
+              onClick={handleNewTimeline}
+              className="flex items-center gap-1 text-xs px-2 py-1.5 rounded-lg bg-copper-400 hover:bg-copper-500 text-brand-950 font-semibold transition-colors shadow-sm"
+              title="Create new timeline"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              <span>New</span>
+            </button>
+          </div>
         </div>
+
+        {/* Multi-Select Action Banner (when active) */}
+        {isMultiSelectMode && (
+          <div className="p-3 bg-brand-950 border-b border-brand-800 space-y-2 animate-in fade-in slide-in-from-top-1">
+            <div className="flex items-center justify-between text-xs text-brand-200">
+              <span className="font-semibold text-copper-300 flex items-center gap-1.5">
+                <GitMerge className="w-3.5 h-3.5 text-copper-400" />
+                {selectedHistoryIds.length} of {history.length} selected
+              </span>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={selectAllHistory}
+                  className="text-brand-400 hover:text-brand-200 text-[11px] underline"
+                >
+                  Select All
+                </button>
+                <button
+                  onClick={clearSelectedHistory}
+                  className="text-brand-400 hover:text-brand-200 text-[11px] underline"
+                >
+                  Clear
+                </button>
+                <button
+                  onClick={() => toggleMultiSelectMode(false)}
+                  className="p-1 text-brand-400 hover:text-white"
+                  title="Close compare mode"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </div>
+
+            {/* Merge Mode Toggle: Parallel Swimlanes vs Unified Track */}
+            <div className="flex items-center justify-between bg-brand-900/90 p-1 rounded-lg border border-brand-800 text-xs">
+              <button
+                type="button"
+                onClick={() => setMergeMode("parallel")}
+                className={`flex-1 py-1 px-2 rounded-md flex items-center justify-center gap-1 text-[11px] transition-all ${
+                  mergeMode === "parallel"
+                    ? "bg-copper-400 text-brand-950 font-bold shadow-sm"
+                    : "text-brand-400 hover:text-brand-200"
+                }`}
+                title="Parallel Swimlanes (tracks stacked horizontally)"
+              >
+                <Split className="w-3 h-3" />
+                <span>Parallel Lines</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setMergeMode("unified")}
+                className={`flex-1 py-1 px-2 rounded-md flex items-center justify-center gap-1 text-[11px] transition-all ${
+                  mergeMode === "unified"
+                    ? "bg-copper-400 text-brand-950 font-bold shadow-sm"
+                    : "text-brand-400 hover:text-brand-200"
+                }`}
+                title="Unified Timeline (all events in single chronological flow)"
+              >
+                <Combine className="w-3 h-3" />
+                <span>Same Timeline</span>
+              </button>
+            </div>
+
+            {/* Merge Trigger Button */}
+            <button
+              onClick={mergeSelectedTimelines}
+              disabled={selectedHistoryIds.length < 2}
+              className="w-full py-2 px-3 rounded-lg bg-copper-400 hover:bg-copper-500 disabled:opacity-40 disabled:pointer-events-none text-brand-950 font-bold text-xs flex items-center justify-center gap-2 transition-all shadow-md shadow-copper-500/10"
+            >
+              <GitMerge className="w-4 h-4" />
+              <span>
+                Merge {selectedHistoryIds.length >= 2 ? `${selectedHistoryIds.length} Timelines` : "(Select ≥ 2)"}
+              </span>
+            </button>
+          </div>
+        )}
 
         {/* Search & Favorites Filter */}
         <div className="p-3 border-b border-brand-800 space-y-2 bg-brand-900/80">
           <div className="relative">
             <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-brand-400" />
             <input
+              id="sidebar-filter-input"
               type="text"
               placeholder="Search past timelines..."
               value={searchTerm}
@@ -236,7 +342,10 @@ export const HistorySidebar: React.FC = () => {
             </div>
           ) : (
             filteredHistory.map((item) => {
-              const isSelected = currentRecord?.id === item.id;
+              const isSelected = isMultiSelectMode
+                ? selectedHistoryIds.includes(item.id)
+                : currentRecord?.id === item.id;
+
               const dateText =
                 item.dateRange?.startYear && item.dateRange?.endYear
                   ? `${item.dateRange.startYear} - ${item.dateRange.endYear}`
@@ -247,33 +356,61 @@ export const HistorySidebar: React.FC = () => {
               return (
                 <div
                   key={item.id}
-                  onClick={() => selectTimelineFromHistory(item.id)}
+                  onClick={() => {
+                    if (isMultiSelectMode) {
+                      toggleSelectHistoryId(item.id);
+                    } else {
+                      selectTimelineFromHistory(item.id);
+                    }
+                  }}
                   className={`group relative p-2.5 rounded-xl border text-left cursor-pointer transition-all ${
                     isSelected
-                      ? "bg-copper-400/20 border-copper-400/60 text-copper-100 ring-1 ring-copper-400/30"
+                      ? "bg-copper-400/20 border-copper-400/70 text-copper-100 ring-1 ring-copper-400/40"
                       : "bg-brand-800/40 border-brand-800 hover:bg-brand-800/90 hover:border-brand-700 text-brand-200"
                   }`}
                 >
                   <div className="flex items-start justify-between gap-2">
-                    <h4 className="font-medium text-xs leading-snug line-clamp-2 text-white">
-                      {item.title || item.topic}
-                    </h4>
+                    <div className="flex items-start gap-2 flex-1">
+                      {/* Checkbox when in Multi-select Mode */}
+                      {isMultiSelectMode && (
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleSelectHistoryId(item.id);
+                          }}
+                          className="pt-0.5 text-copper-400 hover:text-copper-300 flex-shrink-0"
+                        >
+                          {isSelected ? (
+                            <CheckSquare className="w-4 h-4 fill-copper-400 text-brand-950" />
+                          ) : (
+                            <Square className="w-4 h-4 text-brand-500" />
+                          )}
+                        </button>
+                      )}
+
+                      <h4 className="font-medium text-xs leading-snug line-clamp-2 text-white">
+                        {item.title || item.topic}
+                      </h4>
+                    </div>
 
                     {/* Star button */}
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        toggleFavoriteTimeline(item.id);
-                      }}
-                      className="p-1 text-brand-400 hover:text-amber-400 transition-colors flex-shrink-0"
-                      title={item.isFavorite ? "Unstar" : "Star"}
-                    >
-                      <Star
-                        className={`w-3.5 h-3.5 ${
-                          item.isFavorite ? "fill-amber-400 text-amber-400" : ""
-                        }`}
-                      />
-                    </button>
+                    {!isMultiSelectMode && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleFavoriteTimeline(item.id);
+                        }}
+                        className="p-1 text-brand-400 hover:text-amber-400 transition-colors flex-shrink-0"
+                        title={item.isFavorite ? "Unstar" : "Star"}
+                      >
+                        <Star
+                          className={`w-3.5 h-3.5 ${
+                            item.isFavorite ? "fill-amber-400 text-amber-400" : ""
+                          }`}
+                        />
+                      </button>
+                    )}
                   </div>
 
                   <div className="flex items-center justify-between text-[11px] text-brand-400 mt-2">
@@ -289,18 +426,20 @@ export const HistorySidebar: React.FC = () => {
                       </span>
                     </div>
 
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        if (confirm(`Delete "${item.title || item.topic}"?`)) {
-                          deleteTimelineFromHistory(item.id);
-                        }
-                      }}
-                      className="opacity-0 group-hover:opacity-100 p-1 text-brand-400 hover:text-red-400 transition-opacity"
-                      title="Delete from history"
-                    >
-                      <Trash2 className="w-3 h-3" />
-                    </button>
+                    {!isMultiSelectMode && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (confirm(`Delete "${item.title || item.topic}"?`)) {
+                            deleteTimelineFromHistory(item.id);
+                          }
+                        }}
+                        className="opacity-0 group-hover:opacity-100 p-1 text-brand-400 hover:text-red-400 transition-opacity"
+                        title="Delete from history"
+                      >
+                        <Trash2 className="w-3 h-3" />
+                      </button>
+                    )}
                   </div>
                 </div>
               );

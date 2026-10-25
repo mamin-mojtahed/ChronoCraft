@@ -11,7 +11,7 @@ export const SettingsModal: React.FC = () => {
   const [activeProvider, setActiveProvider] = useState<LLMProviderId>("gemini");
   const [geminiKey, setGeminiKey] = useState("");
   const [openaiKey, setOpenaiKey] = useState("");
-  const [geminiModel, setGeminiModel] = useState("gemini-2.5-flash");
+  const [geminiModel, setGeminiModel] = useState("gemini-flash-lite-latest");
   
   const [testingGemini, setTestingGemini] = useState(false);
   const [geminiTestStatus, setGeminiTestStatus] = useState<{ success: boolean; message: string } | null>(null);
@@ -170,9 +170,10 @@ export const SettingsModal: React.FC = () => {
                   onChange={(e) => setGeminiModel(e.target.value)}
                   className="text-xs bg-white border border-brand-300 rounded-md px-2 py-1 text-brand-800 focus:ring-1 focus:ring-copper-400 font-medium"
                 >
-                  <option value="gemini-2.5-flash">Gemini 2.5 Flash (Fastest)</option>
-                  <option value="gemini-1.5-flash">Gemini 1.5 Flash</option>
-                  <option value="gemini-1.5-pro">Gemini 1.5 Pro (Deepest)</option>
+                  <option value="gemini-flash-lite-latest">Gemini Flash-Lite Latest (Cheapest)</option>
+                  <option value="gemini-3.1-flash-lite">Gemini 3.1 Flash-Lite</option>
+                  <option value="gemini-3.5-flash-lite">Gemini 3.5 Flash-Lite</option>
+                  <option value="gemini-flash-latest">Gemini Flash Latest</option>
                 </select>
               </div>
 

@@ -52,6 +52,7 @@ export default function Home() {
     setSettingsOpen,
     setTimeline,
     loadHistory,
+    setSearchQuery,
   } = useTimelineStore();
 
   const [quote, setQuote] = useState(HISTORICAL_QUOTES[0]);
@@ -230,12 +231,8 @@ export default function Home() {
                   <button
                     key={topic}
                     onClick={() => {
-                      const input = document.querySelector("input[placeholder]") as HTMLInputElement;
-                      if (input) {
-                        input.value = topic;
-                        input.dispatchEvent(new Event("input", { bubbles: true }));
-                        input.focus();
-                      }
+                      setSearchQuery(topic);
+                      document.getElementById("timeline-research-input")?.focus();
                     }}
                     className="text-xs px-3 py-1.5 rounded-full bg-white hover:bg-copper-50 hover:text-copper-800 hover:border-copper-300 border border-brand-200 text-brand-800 transition-all shadow-sm"
                   >
