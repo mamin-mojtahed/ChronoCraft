@@ -3,25 +3,141 @@
 @tailwind utilities;
 
 :root {
-  --foreground-rgb: 0, 0, 0;
-  --background-start-rgb: 214, 219, 220;
-  --background-end-rgb: 255, 255, 255;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --foreground-rgb: 255, 255, 255;
-    --background-start-rgb: 0, 0, 0;
-    --background-end-rgb: 0, 0, 0;
-  }
+  --copper-accent: #DCA48E;
+  --brand-dark: #252F2F;
 }
 
 body {
-  color: rgb(var(--foreground-rgb));
+  background-color: #F8F6F4;
+  color: #1A2121;
 }
 
-@layer utilities {
-  .text-balance {
-    text-wrap: balance;
-  }
+/* =========================================================
+   Knight Lab TimelineJS Custom Overrides
+   Ensures event info & content are completely visible and not hidden
+   ========================================================= */
+
+/* Ensure Timeline container fills available space smoothly */
+.tl-timeline {
+  font-family: inherit !important;
+  background-color: #FAFAFA !important;
+}
+
+/* Story slider (the area where the selected event content is displayed) */
+.tl-storyslider {
+  background-color: #FAFAFA !important;
+}
+
+/* Make slide content container visible, scrollable, and never cut off */
+.tl-slide .tl-slide-content-container {
+  box-sizing: border-box !important;
+  max-height: 100% !important;
+  overflow-y: auto !important;
+  padding: 1.5rem 2rem 2.5rem 2rem !important;
+}
+
+/* Slide content flex layout */
+.tl-slide-content {
+  max-width: 1100px !important;
+  margin: 0 auto !important;
+}
+
+/* Headline styling */
+.tl-headline {
+  color: #1A2121 !important;
+  font-weight: 700 !important;
+  font-size: 1.75rem !important;
+  line-height: 1.25 !important;
+  margin-bottom: 0.75rem !important;
+}
+
+.tl-headline-date {
+  color: #A55C41 !important;
+  font-weight: 600 !important;
+}
+
+/* Text content styling - ensure text is fully visible with crisp contrast */
+.tl-text {
+  color: #2D3737 !important;
+  max-height: 100% !important;
+}
+
+.tl-text-content, .tl-text-content p {
+  color: #374747 !important;
+  font-size: 1rem !important;
+  line-height: 1.7 !important;
+  margin-bottom: 0.75rem !important;
+}
+
+/* Media handling */
+.tl-media {
+  max-height: 380px !important;
+}
+
+.tl-media-image img {
+  max-height: 320px !important;
+  object-fit: contain !important;
+  border-radius: 0.5rem !important;
+}
+
+.tl-caption, .tl-credit {
+  color: #7A9999 !important;
+  font-size: 0.75rem !important;
+}
+
+/* =========================================================
+   Timeline Navigation Bar (The bottom scrubber)
+   Styled with Logo's Slate-Teal (#252F2F) and Copper (#DCA48E)
+   ========================================================= */
+.tl-timenav {
+  background-color: #1A2121 !important;
+  border-top: 2px solid #252F2F !important;
+}
+
+.tl-timegroup {
+  background-color: #111616 !important;
+}
+
+.tl-timegroup-tick {
+  color: #A4BABA !important;
+}
+
+.tl-timeaxis-tick-text {
+  color: #A4BABA !important;
+  font-size: 0.75rem !important;
+}
+
+/* Time markers */
+.tl-timemarker .tl-timemarker-content-container {
+  background-color: #252F2F !important;
+  border-radius: 0.375rem !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.25) !important;
+}
+
+.tl-timemarker .tl-timemarker-text h2 {
+  color: #F5ECE8 !important;
+  font-size: 0.75rem !important;
+}
+
+/* Active / Selected time marker highlighted with Copper */
+.tl-timemarker.tl-timemarker-active .tl-timemarker-content-container {
+  background-color: #DCA48E !important;
+}
+
+.tl-timemarker.tl-timemarker-active .tl-timemarker-text h2 {
+  color: #1A2121 !important;
+  font-weight: 700 !important;
+}
+
+.tl-timemarker-line {
+  background-color: #DCA48E !important;
+}
+
+/* Navigation arrows */
+.tl-slidenav-button, .tl-slidenav-next, .tl-slidenav-previous {
+  color: #252F2F !important;
+}
+
+.tl-slidenav-icon {
+  fill: #252F2F !important;
 }
