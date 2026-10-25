@@ -90,47 +90,265 @@ body {
    Styled with Logo's Slate-Teal (#252F2F) and Copper (#DCA48E)
    ========================================================= */
 .tl-timenav {
-  background-color: #1A2121 !important;
-  border-top: 2px solid #252F2F !important;
+  background-color: #212B2B !important;
+  border-top: 2px solid #364646 !important;
 }
 
-.tl-timegroup {
-  background-color: #111616 !important;
+/* =========================================================
+   Parallel Swimlanes Spacing, Gaps & Track Distinction
+   ========================================================= */
+.tl-timenav .tl-timegroup {
+  box-sizing: border-box !important;
+  /* Visual gap & separation between parallel swimlanes */
+  border-bottom: 5px solid #0E1414 !important;
+  transition: background 0.2s ease, border-color 0.2s ease !important;
 }
 
-.tl-timegroup-tick {
-  color: #A4BABA !important;
+.tl-timenav .tl-timegroup:last-child {
+  border-bottom: none !important;
+}
+
+/* Parallel Track Group Label on Left (Sleek Modern Glass Pill) */
+.tl-timenav .tl-timegroup .tl-timegroup-message {
+  text-shadow: none !important;
+  color: #FFFFFF !important;
+  font-weight: 700 !important;
+  font-size: 0.72rem !important;
+  letter-spacing: 0.03em !important;
+  padding: 5px 14px !important;
+  border-radius: 8px !important;
+  margin-left: 14px !important;
+  background: rgba(12, 16, 16, 0.88) !important;
+  border: 1.5px solid rgba(220, 164, 142, 0.5) !important;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.45) !important;
+  backdrop-filter: blur(8px) !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+}
+
+/* Time axis footer */
+.tl-timeaxis-background {
+  background-color: #161D1D !important;
+  border-top: 1px solid #283636 !important;
 }
 
 .tl-timeaxis-tick-text {
-  color: #A4BABA !important;
+  color: #B2C8C8 !important;
   font-size: 0.75rem !important;
+  font-weight: 600 !important;
 }
 
-/* Time markers */
+/* Time markers base */
 .tl-timemarker .tl-timemarker-content-container {
-  background-color: #252F2F !important;
+  background-color: #DCA48E !important;
   border-radius: 0.375rem !important;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.25) !important;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35) !important;
+  transition: transform 0.15s ease, background-color 0.15s ease, box-shadow 0.15s ease !important;
+}
+
+.tl-timemarker:hover .tl-timemarker-content-container {
+  transform: translateY(-2px) !important;
 }
 
 .tl-timemarker .tl-timemarker-text h2 {
-  color: #F5ECE8 !important;
-  font-size: 0.75rem !important;
-}
-
-/* Active / Selected time marker highlighted with Copper */
-.tl-timemarker.tl-timemarker-active .tl-timemarker-content-container {
-  background-color: #DCA48E !important;
-}
-
-.tl-timemarker.tl-timemarker-active .tl-timemarker-text h2 {
   color: #1A2121 !important;
+  font-size: 0.75rem !important;
   font-weight: 700 !important;
 }
 
-.tl-timemarker-line {
+.tl-timemarker .tl-timemarker-line {
   background-color: #DCA48E !important;
+  width: 2px !important;
+}
+
+/* =========================================================
+   Distinct Track Color Shades for Swimlanes, Markers & Slides
+   ========================================================= */
+
+/* Track 1: Copper (#DCA48E) */
+.tl-timemarker[id*="track-0-"] .tl-timemarker-content-container {
+  background-color: #DCA48E !important;
+  border-radius: 6px !important;
+  border: 1px solid #C48E7A !important;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3) !important;
+}
+.tl-timemarker[id*="track-0-"] .tl-timemarker-text h2 {
+  color: #1A2121 !important;
+  font-weight: 700 !important;
+}
+.tl-timemarker[id*="track-0-"] .tl-timemarker-line {
+  background-color: #DCA48E !important;
+  width: 2px !important;
+}
+.tl-timemarker[id*="track-0-"].tl-timemarker-active .tl-timemarker-content-container {
+  background-color: #DCA48E !important;
+  box-shadow: 0 0 16px rgba(220, 164, 142, 0.95), 0 0 0 2px #FFFFFF !important;
+}
+.tl-slide[id*="track-0-"] {
+  background-color: #FAF4F0 !important;
+}
+
+/* Track 2: Teal (#4E9B9E) */
+.tl-timemarker[id*="track-1-"] .tl-timemarker-content-container {
+  background-color: #4E9B9E !important;
+  border-radius: 6px !important;
+  border: 1px solid #3B8285 !important;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3) !important;
+}
+.tl-timemarker[id*="track-1-"] .tl-timemarker-text h2 {
+  color: #FFFFFF !important;
+  font-weight: 700 !important;
+}
+.tl-timemarker[id*="track-1-"] .tl-timemarker-line {
+  background-color: #4E9B9E !important;
+  width: 2px !important;
+}
+.tl-timemarker[id*="track-1-"].tl-timemarker-active .tl-timemarker-content-container {
+  background-color: #4E9B9E !important;
+  box-shadow: 0 0 16px rgba(78, 155, 158, 0.95), 0 0 0 2px #FFFFFF !important;
+}
+.tl-slide[id*="track-1-"] {
+  background-color: #F0F7F7 !important;
+}
+
+/* Track 3: Gold (#DE9F35) */
+.tl-timemarker[id*="track-2-"] .tl-timemarker-content-container {
+  background-color: #DE9F35 !important;
+  border-radius: 6px !important;
+  border: 1px solid #C4892A !important;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3) !important;
+}
+.tl-timemarker[id*="track-2-"] .tl-timemarker-text h2 {
+  color: #1A2121 !important;
+  font-weight: 700 !important;
+}
+.tl-timemarker[id*="track-2-"] .tl-timemarker-line {
+  background-color: #DE9F35 !important;
+  width: 2px !important;
+}
+.tl-timemarker[id*="track-2-"].tl-timemarker-active .tl-timemarker-content-container {
+  background-color: #DE9F35 !important;
+  box-shadow: 0 0 16px rgba(222, 159, 53, 0.95), 0 0 0 2px #FFFFFF !important;
+}
+.tl-slide[id*="track-2-"] {
+  background-color: #FCF8ED !important;
+}
+
+/* Track 4: Indigo (#8A74B8) */
+.tl-timemarker[id*="track-3-"] .tl-timemarker-content-container {
+  background-color: #8A74B8 !important;
+  border-radius: 6px !important;
+  border: 1px solid #735D9F !important;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3) !important;
+}
+.tl-timemarker[id*="track-3-"] .tl-timemarker-text h2 {
+  color: #FFFFFF !important;
+  font-weight: 700 !important;
+}
+.tl-timemarker[id*="track-3-"] .tl-timemarker-line {
+  background-color: #8A74B8 !important;
+  width: 2px !important;
+}
+.tl-timemarker[id*="track-3-"].tl-timemarker-active .tl-timemarker-content-container {
+  background-color: #8A74B8 !important;
+  box-shadow: 0 0 16px rgba(138, 116, 184, 0.95), 0 0 0 2px #FFFFFF !important;
+}
+.tl-slide[id*="track-3-"] {
+  background-color: #F4F1FA !important;
+}
+
+/* Track 5: Coral (#D96868) */
+.tl-timemarker[id*="track-4-"] .tl-timemarker-content-container {
+  background-color: #D96868 !important;
+  border-radius: 6px !important;
+  border: 1px solid #BF5454 !important;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3) !important;
+}
+.tl-timemarker[id*="track-4-"] .tl-timemarker-text h2 {
+  color: #FFFFFF !important;
+  font-weight: 700 !important;
+}
+.tl-timemarker[id*="track-4-"] .tl-timemarker-line {
+  background-color: #D96868 !important;
+  width: 2px !important;
+}
+.tl-timemarker[id*="track-4-"].tl-timemarker-active .tl-timemarker-content-container {
+  background-color: #D96868 !important;
+  box-shadow: 0 0 16px rgba(217, 104, 104, 0.95), 0 0 0 2px #FFFFFF !important;
+}
+.tl-slide[id*="track-4-"] {
+  background-color: #FDF2F2 !important;
+}
+
+/* Track 6: Emerald (#4B9678) */
+.tl-timemarker[id*="track-5-"] .tl-timemarker-content-container {
+  background-color: #4B9678 !important;
+  border-radius: 6px !important;
+  border: 1px solid #3A7F64 !important;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3) !important;
+}
+.tl-timemarker[id*="track-5-"] .tl-timemarker-text h2 {
+  color: #FFFFFF !important;
+  font-weight: 700 !important;
+}
+.tl-timemarker[id*="track-5-"] .tl-timemarker-line {
+  background-color: #4B9678 !important;
+  width: 2px !important;
+}
+.tl-timemarker[id*="track-5-"].tl-timemarker-active .tl-timemarker-content-container {
+  background-color: #4B9678 !important;
+  box-shadow: 0 0 16px rgba(75, 150, 120, 0.95), 0 0 0 2px #FFFFFF !important;
+}
+.tl-slide[id*="track-5-"] {
+  background-color: #F0F8F4 !important;
+}
+
+/* =========================================================
+   Title Slide Styling - Deep slate-teal with glowing card
+   ========================================================= */
+.tl-slide.tl-slide-titleslide {
+  background: linear-gradient(135deg, #252F2F 0%, #151C1C 100%) !important;
+}
+
+.tl-slide.tl-slide-titleslide .tl-slide-content-container {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.tl-slide.tl-slide-titleslide .tl-text-content-container {
+  background: rgba(18, 24, 24, 0.88) !important;
+  backdrop-filter: blur(14px) !important;
+  border: 1px solid rgba(220, 164, 142, 0.35) !important;
+  border-radius: 16px !important;
+  padding: 2.5rem 3rem !important;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45) !important;
+  max-width: 850px !important;
+  margin: 0 auto !important;
+}
+
+.tl-slide.tl-slide-titleslide .tl-headline {
+  color: #FFFFFF !important;
+  font-weight: 800 !important;
+  letter-spacing: -0.02em !important;
+  margin-bottom: 1rem !important;
+  text-shadow: none !important;
+}
+
+.tl-slide.tl-slide-titleslide .tl-text-content,
+.tl-slide.tl-slide-titleslide .tl-text-content p {
+  color: #D5E5E5 !important;
+  font-size: 1.05rem !important;
+  line-height: 1.7 !important;
+  text-shadow: none !important;
+}
+
+/* Regular Event Card Slide Framing (Excluded on title slide to prevent white-on-white text) */
+.tl-slide:not(.tl-slide-titleslide) .tl-text-content-container {
+  background: rgba(255, 255, 255, 0.96) !important;
+  border-radius: 12px !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06) !important;
 }
 
 /* Navigation arrows */

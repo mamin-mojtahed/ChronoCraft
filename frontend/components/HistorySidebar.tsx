@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useMemo, useRef } from "react";
-import { useTimelineStore } from "@/store/zustand";
+import { useTimelineStore, TRACK_PALETTE, getTimelineTrackColor } from "@/store/zustand";
 import {
   Clock,
   Star,
@@ -16,10 +16,10 @@ import {
   CheckCircle2,
   AlertCircle,
   Layers,
-  GitMerge,
   CheckSquare,
   Square,
   X,
+  SlidersHorizontal,
   Split,
   Combine,
 } from "lucide-react";
@@ -39,15 +39,15 @@ export const HistorySidebar: React.FC = () => {
     toggleFavoriteTimeline,
     currentRecord,
     setTimeline,
-    isMultiSelectMode,
-    toggleMultiSelectMode,
+    isCompareMode,
+    toggleCompareMode,
     selectedHistoryIds,
     toggleSelectHistoryId,
     selectAllHistory,
     clearSelectedHistory,
-    mergeMode,
-    setMergeMode,
-    mergeSelectedTimelines,
+    comparisonTracks,
+    comparisonViewMode,
+    setComparisonViewMode,
   } = useTimelineStore();
 
   const [searchTerm, setSearchTerm] = useState("");
@@ -166,16 +166,16 @@ export const HistorySidebar: React.FC = () => {
           </div>
 
           <div className="flex items-center gap-1.5">
-            {/* Multi-select / Compare toggle */}
+            {/* Compare mode toggle button */}
             <button
-              onClick={() => toggleMultiSelectMode()}
+              onClick={() => toggleCompareMode()}
               disabled={history.length < 2}
               className={`p-1.5 rounded-lg text-xs font-medium flex items-center gap-1 transition-colors disabled:opacity-40 ${
-                isMultiSelectMode
+                isCompareMode
                   ? "bg-copper-400 text-brand-950 font-bold"
                   : "bg-brand-800 text-brand-300 hover:text-white hover:bg-brand-700"
               }`}
-              title={isMultiSelectMode ? "Exit multi-select" : "Compare & merge timelines"}
+              title={isCompareMode ? "Exit compare mode" : "Compare multiple timelines in parallel"}
             >
               <Layers className="w-3.5 h-3.5" />
               <span className="hidden sm:inline">Compare</span>
@@ -192,20 +192,20 @@ export const HistorySidebar: React.FC = () => {
           </div>
         </div>
 
-        {/* Multi-Select Action Banner (when active) */}
-        {isMultiSelectMode && (
-          <div className="p-3 bg-brand-950 border-b border-brand-800 space-y-2 animate-in fade-in slide-in-from-top-1">
+        {/* Compare Mode Status & Instant Filter Bar (Active during compare mode) */}
+        {isCompareMode && (
+          <div className="p-3 bg-brand-950 border-b border-brand-800 space-y-2.5 animate-in fade-in slide-in-from-top-1">
             <div className="flex items-center justify-between text-xs text-brand-200">
               <span className="font-semibold text-copper-300 flex items-center gap-1.5">
-                <GitMerge className="w-3.5 h-3.5 text-copper-400" />
-                {selectedHistoryIds.length} of {history.length} selected
+                <SlidersHorizontal className="w-3.5 h-3.5 text-copper-400" />
+                Comparing {selectedHistoryIds.length} of {history.length}
               </span>
               <div className="flex items-center gap-2">
                 <button
                   onClick={selectAllHistory}
                   className="text-brand-400 hover:text-brand-200 text-[11px] underline"
                 >
-                  Select All
+                  All
                 </button>
                 <button
                   onClick={clearSelectedHistory}
@@ -214,7 +214,7 @@ export const HistorySidebar: React.FC = () => {
                   Clear
                 </button>
                 <button
-                  onClick={() => toggleMultiSelectMode(false)}
+                  onClick={() => toggleCompareMode(false)}
                   className="p-1 text-brand-400 hover:text-white"
                   title="Close compare mode"
                 >
@@ -223,48 +223,57 @@ export const HistorySidebar: React.FC = () => {
               </div>
             </div>
 
-            {/* Merge Mode Toggle: Parallel Swimlanes vs Unified Track */}
-            <div className="flex items-center justify-between bg-brand-900/90 p-1 rounded-lg border border-brand-800 text-xs">
-              <button
-                type="button"
-                onClick={() => setMergeMode("parallel")}
-                className={`flex-1 py-1 px-2 rounded-md flex items-center justify-center gap-1 text-[11px] transition-all ${
-                  mergeMode === "parallel"
-                    ? "bg-copper-400 text-brand-950 font-bold shadow-sm"
-                    : "text-brand-400 hover:text-brand-200"
-                }`}
-                title="Parallel Swimlanes (tracks stacked horizontally)"
-              >
-                <Split className="w-3 h-3" />
-                <span>Parallel Lines</span>
-              </button>
+            {/* Visual Color Chips of Currently Active Tracks */}
+            {comparisonTracks.length > 0 && (
+              <div className="flex items-center gap-1.5 flex-wrap pt-1">
+                {comparisonTracks.map((track) => (
+                  <span
+                    key={track.id}
+                    className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full font-medium shadow-xs"
+                    style={{
+                      backgroundColor: track.color.hex,
+                      color: "#1A2121",
+                    }}
+                    title={`${track.title} (${track.eventsCount} milestones)`}
+                  >
+                    <span className="w-1.5 h-1.5 rounded-full bg-brand-950/40" />
+                    <span className="max-w-[100px] truncate">{track.title}</span>
+                  </span>
+                ))}
+              </div>
+            )}
 
-              <button
-                type="button"
-                onClick={() => setMergeMode("unified")}
-                className={`flex-1 py-1 px-2 rounded-md flex items-center justify-center gap-1 text-[11px] transition-all ${
-                  mergeMode === "unified"
-                    ? "bg-copper-400 text-brand-950 font-bold shadow-sm"
-                    : "text-brand-400 hover:text-brand-200"
-                }`}
-                title="Unified Timeline (all events in single chronological flow)"
-              >
-                <Combine className="w-3 h-3" />
-                <span>Same Timeline</span>
-              </button>
-            </div>
-
-            {/* Merge Trigger Button */}
-            <button
-              onClick={mergeSelectedTimelines}
-              disabled={selectedHistoryIds.length < 2}
-              className="w-full py-2 px-3 rounded-lg bg-copper-400 hover:bg-copper-500 disabled:opacity-40 disabled:pointer-events-none text-brand-950 font-bold text-xs flex items-center justify-center gap-2 transition-all shadow-md shadow-copper-500/10"
-            >
-              <GitMerge className="w-4 h-4" />
-              <span>
-                Merge {selectedHistoryIds.length >= 2 ? `${selectedHistoryIds.length} Timelines` : "(Select ≥ 2)"}
-              </span>
-            </button>
+            {/* View Mode Toggler: Parallel Tracks vs Merged Track */}
+            {comparisonTracks.length >= 2 && (
+              <div className="flex items-center bg-brand-900/90 p-1 rounded-lg border border-brand-800 text-xs">
+                <button
+                  type="button"
+                  onClick={() => setComparisonViewMode("parallel")}
+                  className={`flex-1 py-1 px-2 rounded-md flex items-center justify-center gap-1 text-[11px] transition-all ${
+                    comparisonViewMode === "parallel"
+                      ? "bg-copper-400 text-brand-950 font-bold shadow-xs"
+                      : "text-brand-400 hover:text-brand-200"
+                  }`}
+                  title="Parallel Tracks (tracks organized into stacked swimlanes with gaps)"
+                >
+                  <Split className="w-3 h-3" />
+                  <span>Parallel</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setComparisonViewMode("merged")}
+                  className={`flex-1 py-1 px-2 rounded-md flex items-center justify-center gap-1 text-[11px] transition-all ${
+                    comparisonViewMode === "merged"
+                      ? "bg-copper-400 text-brand-950 font-bold shadow-xs"
+                      : "text-brand-400 hover:text-brand-200"
+                  }`}
+                  title="Merged Track (all milestones on single chronological line, with distinct card colors)"
+                >
+                  <Combine className="w-3 h-3" />
+                  <span>Merged Track</span>
+                </button>
+              </div>
+            )}
           </div>
         )}
 
@@ -342,9 +351,19 @@ export const HistorySidebar: React.FC = () => {
             </div>
           ) : (
             filteredHistory.map((item) => {
-              const isSelected = isMultiSelectMode
+              const isSelected = isCompareMode
                 ? selectedHistoryIds.includes(item.id)
                 : currentRecord?.id === item.id;
+
+              // Find track color if selected in compare mode, or timeline identifying color in general
+              const trackIndex = selectedHistoryIds.indexOf(item.id);
+              const assignedTrackColor =
+                isCompareMode && trackIndex !== -1
+                  ? TRACK_PALETTE[trackIndex % TRACK_PALETTE.length]
+                  : null;
+
+              const singleItemColor = getTimelineTrackColor(item, history);
+              const activeColor = assignedTrackColor || (isSelected ? singleItemColor : null);
 
               const dateText =
                 item.dateRange?.startYear && item.dateRange?.endYear
@@ -357,45 +376,80 @@ export const HistorySidebar: React.FC = () => {
                 <div
                   key={item.id}
                   onClick={() => {
-                    if (isMultiSelectMode) {
+                    if (isCompareMode) {
                       toggleSelectHistoryId(item.id);
                     } else {
                       selectTimelineFromHistory(item.id);
                     }
                   }}
+                  style={
+                    activeColor
+                      ? {
+                          borderColor: activeColor.hex,
+                          backgroundColor: `${activeColor.hex}18`,
+                        }
+                      : undefined
+                  }
                   className={`group relative p-2.5 rounded-xl border text-left cursor-pointer transition-all ${
-                    isSelected
-                      ? "bg-copper-400/20 border-copper-400/70 text-copper-100 ring-1 ring-copper-400/40"
+                    activeColor
+                      ? "ring-1 ring-offset-0 text-white"
                       : "bg-brand-800/40 border-brand-800 hover:bg-brand-800/90 hover:border-brand-700 text-brand-200"
                   }`}
                 >
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex items-start gap-2 flex-1">
-                      {/* Checkbox when in Multi-select Mode */}
-                      {isMultiSelectMode && (
+                      {/* Checkbox when in Compare Mode with instant update */}
+                      {isCompareMode && (
                         <button
                           type="button"
                           onClick={(e) => {
                             e.stopPropagation();
                             toggleSelectHistoryId(item.id);
                           }}
-                          className="pt-0.5 text-copper-400 hover:text-copper-300 flex-shrink-0"
+                          className="pt-0.5 flex-shrink-0"
+                          style={{
+                            color: assignedTrackColor?.hex || undefined,
+                          }}
                         >
                           {isSelected ? (
-                            <CheckSquare className="w-4 h-4 fill-copper-400 text-brand-950" />
+                            <CheckSquare
+                              className="w-4 h-4 fill-current"
+                              style={{ color: assignedTrackColor?.hex || "#DCA48E" }}
+                            />
                           ) : (
                             <Square className="w-4 h-4 text-brand-500" />
                           )}
                         </button>
                       )}
 
-                      <h4 className="font-medium text-xs leading-snug line-clamp-2 text-white">
-                        {item.title || item.topic}
-                      </h4>
+                      <div className="flex-1">
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          {assignedTrackColor ? (
+                            <span
+                              className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.2 rounded"
+                              style={{
+                                backgroundColor: assignedTrackColor.hex,
+                                color: "#1A2121",
+                              }}
+                            >
+                              Track {trackIndex + 1}
+                            </span>
+                          ) : (
+                            <span
+                              className="w-2 h-2 rounded-full flex-shrink-0"
+                              style={{ backgroundColor: singleItemColor.hex }}
+                              title={`Theme: ${singleItemColor.name}`}
+                            />
+                          )}
+                          <h4 className="font-medium text-xs leading-snug line-clamp-2 text-white">
+                            {item.title || item.topic}
+                          </h4>
+                        </div>
+                      </div>
                     </div>
 
                     {/* Star button */}
-                    {!isMultiSelectMode && (
+                    {!isCompareMode && (
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
@@ -426,7 +480,7 @@ export const HistorySidebar: React.FC = () => {
                       </span>
                     </div>
 
-                    {!isMultiSelectMode && (
+                    {!isCompareMode && (
                       <button
                         onClick={(e) => {
                           e.stopPropagation();

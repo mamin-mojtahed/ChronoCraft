@@ -41,6 +41,10 @@ export interface TimelineData {
   title?: {
     media?: TimelineMedia;
     text: TimelineText;
+    background?: {
+      url?: string;
+      color?: string;
+    };
   };
   events: TimelineSlide[];
 }
