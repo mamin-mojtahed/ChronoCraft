@@ -20,6 +20,7 @@ export const SettingsModal: React.FC = () => {
   const [openaiTestStatus, setOpenaiTestStatus] = useState<{ success: boolean; message: string } | null>(null);
 
   const [savedToast, setSavedToast] = useState(false);
+  const [serverConfig, setServerConfig] = useState<any>(null);
 
   useEffect(() => {
     if (settingsOpen) {
@@ -30,6 +31,7 @@ export const SettingsModal: React.FC = () => {
       setGeminiModel(s.geminiModel);
       setGeminiTestStatus(null);
       setOpenaiTestStatus(null);
+      SettingsService.fetchServerConfig().then(setServerConfig);
     }
   }, [settingsOpen]);
 
@@ -142,6 +144,11 @@ export const SettingsModal: React.FC = () => {
                     .env configured
                   </span>
                 )}
+                {serverConfig?.hasServerGeminiKey && !geminiKey && (
+                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 font-medium">
+                    Server configured
+                  </span>
+                )}
               </span>
               <a
                 href="https://aistudio.google.com/app/apikey"
@@ -155,7 +162,7 @@ export const SettingsModal: React.FC = () => {
 
             <input
               type="password"
-              placeholder="AIzaSy..."
+              placeholder={serverConfig?.hasServerGeminiKey ? "Using secret server key (enter to override)" : "AIzaSy..."}
               value={geminiKey}
               onChange={(e) => setGeminiKey(e.target.value)}
               className="w-full px-3 py-2 bg-white border border-brand-300 rounded-lg text-brand-950 focus:outline-none focus:ring-2 focus:ring-copper-400 font-mono text-xs"
@@ -205,7 +212,19 @@ export const SettingsModal: React.FC = () => {
           {/* OpenAI Settings */}
           <div className="p-4 rounded-xl border border-brand-200 bg-brand-50/50 space-y-3">
             <div className="flex items-center justify-between">
-              <span className="font-semibold text-brand-900">OpenAI API Key (Optional)</span>
+              <span className="font-semibold text-brand-900 flex items-center gap-2">
+                OpenAI API Key (Optional)
+                {process.env.NEXT_PUBLIC_OPENAI_API_KEY && openaiKey === process.env.NEXT_PUBLIC_OPENAI_API_KEY && (
+                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 font-medium">
+                    .env configured
+                  </span>
+                )}
+                {serverConfig?.hasServerOpenAiKey && !openaiKey && (
+                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 font-medium">
+                    Server configured
+                  </span>
+                )}
+              </span>
               <a
                 href="https://platform.openai.com/api-keys"
                 target="_blank"
@@ -218,7 +237,7 @@ export const SettingsModal: React.FC = () => {
 
             <input
               type="password"
-              placeholder="sk-proj-..."
+              placeholder={serverConfig?.hasServerOpenAiKey ? "Using secret server key (enter to override)" : "sk-proj-..."}
               value={openaiKey}
               onChange={(e) => setOpenaiKey(e.target.value)}
               className="w-full px-3 py-2 bg-white border border-brand-300 rounded-lg text-brand-950 focus:outline-none focus:ring-2 focus:ring-copper-400 font-mono text-xs"

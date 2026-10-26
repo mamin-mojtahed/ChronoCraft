@@ -88,16 +88,38 @@ If you haven't set `NEXT_PUBLIC_GEMINI_API_KEY` in `.env.local`, you can also cl
 
 ---
 
-## 📦 Building for GitHub Pages
+## 🌐 Deploying to Vercel (Recommended for Secret API Keys)
 
-To build the static production export:
+Deploying on **[Vercel](https://vercel.com)** allows you to store your Google Gemini or OpenAI API keys as **private server secrets**, meaning visitors can generate timelines on your live site without needing their own key and without exposing your secret key in client JavaScript.
+
+### Step-by-Step Vercel Setup:
+
+1. **Import Project to Vercel**:
+   - Go to [vercel.com/new](https://vercel.com/new) and import your ChronoCraft GitHub repository.
+   - If prompted for **Root Directory**, select `frontend` (or leave as root; the included `vercel.json` automatically detects Next.js).
+2. **Add Environment Variables**:
+   In your Vercel Project Settings > **Environment Variables**, add:
+   - `GEMINI_API_KEY`: Your secret Google Gemini key from [Google AI Studio](https://aistudio.google.com/app/apikey).
+   - *(Optional)* `OPENAI_API_KEY`: Your secret OpenAI key from [OpenAI Platform](https://platform.openai.com/api-keys).
+   
+   > ⚠️ **Important**: Do **not** prefix these with `NEXT_PUBLIC_` on Vercel. Leaving off the prefix keeps them server-side only in Vercel serverless functions.
+
+3. **Deploy**:
+   - Click **Deploy**. Vercel will build the Next.js application and deploy the serverless API routes (`/api/generate` and `/api/config`).
+   - Your site is live! Visitors can generate timelines immediately, and anyone can still optionally supply their own personal key in the Settings modal if they choose.
+
+---
+
+## 📦 Building for GitHub Pages (Static Hosting)
+
+If you prefer hosting 100% statically on GitHub Pages:
 
 ```bash
 cd frontend
-npm run build
+npm run build:pages
 ```
 
-This compiles static assets into `frontend/out/`, ready for any static host or GitHub Pages.
+This compiles static assets into `frontend/out/`. Note that for purely static hosting without a server backend, visitors must provide their own free Gemini API key via the in-app Settings modal or via client `.env.local`.
 
 ---
 

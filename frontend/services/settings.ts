@@ -35,7 +35,51 @@ const DEFAULT_SETTINGS: AppSettings = {
   sidebarOpen: true,
 };
 
+export interface ServerConfig {
+  hasServerGeminiKey: boolean;
+  hasServerOpenAiKey: boolean;
+  defaultProvider?: LLMProviderId;
+  defaultGeminiModel?: string;
+  defaultOpenAiModel?: string;
+}
+
+let cachedServerConfig: ServerConfig | null = null;
+
 export const SettingsService = {
+  async fetchServerConfig(): Promise<ServerConfig> {
+    if (cachedServerConfig) return cachedServerConfig;
+    if (typeof window === "undefined") {
+      return { hasServerGeminiKey: false, hasServerOpenAiKey: false };
+    }
+    try {
+      const basePath = process.env.NEXT_PUBLIC_BASE_PATH || "";
+      const res = await fetch(`${basePath}/api/config`, { cache: "no-store" });
+      if (res.ok) {
+        const data = await res.json();
+        cachedServerConfig = data;
+        return data;
+      }
+    } catch {
+      // Graceful fallback for static export on GitHub Pages or offline
+    }
+    cachedServerConfig = { hasServerGeminiKey: false, hasServerOpenAiKey: false };
+    return cachedServerConfig;
+  },
+
+  getServerConfig(): ServerConfig | null {
+    return cachedServerConfig;
+  },
+
+  async hasConfiguredKey(provider?: LLMProviderId): Promise<boolean> {
+    const s = this.getSettings();
+    const active = provider || s.activeProvider;
+    const clientKey = active === "gemini" ? s.geminiApiKey : s.openaiApiKey;
+    if (clientKey && clientKey.trim().length > 0) return true;
+
+    const serverCfg = await this.fetchServerConfig();
+    return active === "gemini" ? serverCfg.hasServerGeminiKey : serverCfg.hasServerOpenAiKey;
+  },
+
   getSettings(): AppSettings {
     if (typeof window === "undefined") {
       return DEFAULT_SETTINGS;

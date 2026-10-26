@@ -41,11 +41,11 @@ export const SearchBar: React.FC = () => {
 
     const settings = SettingsService.getSettings();
     const provider = settings.activeProvider;
-    const key = provider === "gemini" ? settings.geminiApiKey : settings.openaiApiKey;
 
-    if (!key) {
+    const hasKey = await SettingsService.hasConfiguredKey(provider);
+    if (!hasKey) {
       setSettingsOpen(true);
-      setError(`Please set your ${provider === "gemini" ? "Google Gemini" : "OpenAI"} API key to start generating timelines.`);
+      setError(`Please set your ${provider === "gemini" ? "Google Gemini" : "OpenAI"} API key in Settings, or configure GEMINI_API_KEY in your Vercel deployment.`);
       return;
     }
 

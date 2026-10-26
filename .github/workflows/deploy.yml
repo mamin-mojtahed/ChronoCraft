@@ -1,9 +1,8 @@
 name: Deploy Next.js to GitHub Pages
 
 on:
-  push:
-    branches:
-      - main
+  # Auto-deployment on push is disabled (now deploying to Vercel).
+  # To deploy manually to GitHub Pages, trigger via the Actions tab in GitHub.
   workflow_dispatch:
 
 permissions:
@@ -41,6 +40,7 @@ jobs:
         working-directory: ./frontend
         env:
           NEXT_PUBLIC_BASE_PATH: ${{ steps.pages.outputs.base_path }}
+          STATIC_EXPORT: "true"
         run: |
           npm run build
           touch out/.nojekyll

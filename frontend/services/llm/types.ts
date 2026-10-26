@@ -5,6 +5,7 @@ export interface GenerateTimelineOptions {
   topic: string;
   numEvents?: number;
   model?: string;
+  dateRange?: { startYear?: number; endYear?: number };
 }
 
 export interface LLMProvider {

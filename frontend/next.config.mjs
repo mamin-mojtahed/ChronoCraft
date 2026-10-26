@@ -18,13 +18,14 @@ const getBasePath = () => {
 };
 
 const basePath = getBasePath();
+const isStaticExport = process.env.STATIC_EXPORT === 'true';
 
 const nextConfig = {
-  output: 'export',
+  ...(isStaticExport ? { output: 'export' } : {}),
   images: {
-    unoptimized: true,
+    unoptimized: isStaticExport,
   },
-  trailingSlash: true,
+  trailingSlash: isStaticExport,
   basePath: basePath,
   env: {
     NEXT_PUBLIC_BASE_PATH: basePath,

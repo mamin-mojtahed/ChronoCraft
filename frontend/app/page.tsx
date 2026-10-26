@@ -66,7 +66,14 @@ export default function Home() {
 
     const s = SettingsService.getSettings();
     const activeKey = s.activeProvider === "gemini" ? s.geminiApiKey : s.openaiApiKey;
-    setHasApiKey(Boolean(activeKey));
+    if (activeKey && activeKey.trim().length > 0) {
+      setHasApiKey(true);
+    } else {
+      SettingsService.fetchServerConfig().then((cfg) => {
+        const hasServerKey = s.activeProvider === "gemini" ? cfg.hasServerGeminiKey : cfg.hasServerOpenAiKey;
+        setHasApiKey(Boolean(hasServerKey));
+      });
+    }
   }, []);
 
   const handleLoadSampleTimeline = async () => {
