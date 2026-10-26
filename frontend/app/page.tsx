@@ -84,16 +84,16 @@ export default function Home() {
       const data = await res.json();
       
       const sampleRecord = {
-        id: "sample-whitney",
-        topic: "Whitney Houston: Life & Legacy",
-        title: "Whitney Houston: Life & Legacy",
+        id: "sample-user-interface",
+        topic: "Revolutionary User Interfaces",
+        title: "Revolutionary User Interfaces",
         createdAt: Date.now(),
         updatedAt: Date.now(),
         provider: "gemini" as const,
         model: "sample",
         eventsCount: data.events?.length || 0,
         dateRange: {
-          startYear: 1963,
+          startYear: 1600,
           endYear: 2012,
         },
         timelineData: data,
@@ -261,7 +261,7 @@ export default function Home() {
                   className="inline-flex items-center gap-2 text-xs text-brand-700 hover:text-brand-950 px-3.5 py-1.5 rounded-xl border border-brand-300 bg-white hover:bg-copper-50/60 transition-colors shadow-sm"
                 >
                   <BookOpen className="w-3.5 h-3.5 text-copper-600" />
-                  <span>Preview Demo Timeline (Whitney Houston)</span>
+                  <span>Preview Demo Timeline (User Interfaces)</span>
                   <ArrowRight className="w-3 h-3 text-copper-400" />
                 </button>
               </div>
