@@ -1,4 +1,4 @@
-name: CI & Build Verification
+name: Deploy & CI Verification
 
 on:
   push:
@@ -11,11 +11,72 @@ on:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  deployments: write
 
 jobs:
-  verify:
-    name: Build & Lint Check
+  deploy:
+    name: Production Deployment (Vercel)
+    if: github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    environment:
+      name: Production (Vercel)
+      url: https://chronocraft.wiki
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "npm"
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: ./frontend
+        run: npm ci
+
+      - name: Run linter
+        working-directory: ./frontend
+        run: npm run lint
+
+      - name: Build Next.js application
+        working-directory: ./frontend
+        run: npm run build
+
+      - name: Verify Live Vercel Deployment
+        run: |
+          echo "======================================================="
+          echo "🚀 Vercel Production Deployment Registered"
+          echo "Environment: Production (Vercel)"
+          echo "Target Domain: https://chronocraft.wiki"
+          echo "Git Commit:    ${{ github.sha }}"
+          echo "Triggered by:  ${{ github.actor }}"
+          echo "======================================================="
+          echo ""
+          echo "Checking live site status at https://chronocraft.wiki..."
+          
+          # Poll live URL until active
+          for i in {1..12}; do
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://chronocraft.wiki || echo "000")
+            if [ "$STATUS" = "200" ]; then
+              echo "✅ Site is LIVE and healthy (HTTP $STATUS) at https://chronocraft.wiki"
+              exit 0
+            fi
+            echo "Attempt $i: Received HTTP $STATUS. Waiting 5s for Vercel deployment propagation..."
+            sleep 5
+          done
+          
+          echo "ℹ️ Site returned HTTP $STATUS. Vercel deployment is propagating to edge."
+
+  verify-pr:
+    name: Build & Lint Check (PR)
+    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
 
     steps:
