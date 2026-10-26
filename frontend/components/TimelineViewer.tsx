@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
-import { TimelineData } from "@/types/timeline";
+import { TimelineData, TimelineSlide, formatEventDate } from "@/types/timeline";
 import {
   Download,
   FileJson,
@@ -14,6 +14,9 @@ import {
   Layers,
   Split,
   Combine,
+  Pencil,
+  Plus,
+  Trash2,
 } from "lucide-react";
 import { useTimelineStore, getTimelineTrackColor } from "@/store/zustand";
 import { StorageService } from "@/services/storage";
@@ -40,6 +43,9 @@ export const TimelineViewer: React.FC<TimelineViewerProps> = ({ data, title }) =
     comparisonViewMode,
     setComparisonViewMode,
     loadHistory,
+    setEditingTimelineRecord,
+    setEditingEvent,
+    deleteEvent,
   } = useTimelineStore();
 
   const isComparison = comparisonTracks.length >= 2 || Boolean(currentRecord?.isMerged);
@@ -451,6 +457,18 @@ export const TimelineViewer: React.FC<TimelineViewerProps> = ({ data, title }) =
             <span className="hidden sm:inline">Event List</span>
           </button>
 
+          {/* Edit Timeline & Events Button */}
+          {currentRecord && !isComparison && (
+            <button
+              onClick={() => setEditingTimelineRecord(currentRecord)}
+              className="p-2 rounded-lg bg-white border border-brand-200 text-xs font-medium text-brand-700 hover:bg-brand-100/60 flex items-center gap-1.5 transition-colors"
+              title="Edit timeline details and events"
+            >
+              <Pencil className="w-3.5 h-3.5 text-copper-600" />
+              <span className="hidden sm:inline">Edit</span>
+            </button>
+          )}
+
           {currentRecord && !isComparison && (
             <button
               onClick={() => toggleFavoriteTimeline(currentRecord.id)}
@@ -570,19 +588,59 @@ export const TimelineViewer: React.FC<TimelineViewerProps> = ({ data, title }) =
         {/* Event List Outline Panel with Track & Card Distinction */}
         {showOutline && (
           <aside className="w-80 sm:w-96 border-l border-brand-200 bg-white overflow-y-auto p-4 space-y-4 shadow-xl z-20 animate-in slide-in-from-right duration-200">
-            <div className="flex items-center justify-between border-b border-brand-100 pb-2">
-              <h3 className="font-bold text-sm text-brand-900">All Timeline Events</h3>
-              <span className="text-xs text-brand-500 font-mono">{data.events.length} events</span>
+            <div className="border-b border-brand-100 pb-3 space-y-2">
+              <div className="flex items-center justify-between">
+                <h3 className="font-bold text-sm text-brand-900">All Timeline Events</h3>
+                <span className="text-xs text-brand-500 font-mono">{data.events.length} events</span>
+              </div>
+              <div className="flex items-center gap-2">
+                {currentRecord && (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const defaultNewEvent: TimelineSlide = {
+                          unique_id: `evt-${Date.now()}`,
+                          start_date: {
+                            year: currentRecord.dateRange?.startYear || new Date().getFullYear(),
+                          },
+                          text: {
+                            headline: "",
+                            text: "",
+                          },
+                        };
+                        setEditingEvent({
+                          recordId: currentRecord.id,
+                          eventIndex: null,
+                          event: defaultNewEvent,
+                        });
+                      }}
+                      className="flex-1 py-1.5 px-2.5 rounded-lg bg-copper-400 hover:bg-copper-500 text-brand-950 font-bold text-xs flex items-center justify-center gap-1.5 transition-colors shadow-xs"
+                      title="Add new milestone to this timeline"
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                      <span>Add Event</span>
+                    </button>
+
+                    {!isComparison && (
+                      <button
+                        type="button"
+                        onClick={() => setEditingTimelineRecord(currentRecord)}
+                        className="py-1.5 px-2.5 rounded-lg bg-brand-100 hover:bg-brand-200 text-brand-800 font-medium text-xs flex items-center gap-1 transition-colors"
+                        title="Edit timeline details and cover slide"
+                      >
+                        <Pencil className="w-3 h-3" />
+                        <span>Edit Info</span>
+                      </button>
+                    )}
+                  </>
+                )}
+              </div>
             </div>
 
             <div className="space-y-3">
               {data.events.map((evt, idx) => {
-                const yearStr = evt.start_date?.year;
-                const dateStr = [
-                  yearStr,
-                  evt.start_date?.month ? `/${evt.start_date.month}` : "",
-                  evt.start_date?.day ? `/${evt.start_date.day}` : "",
-                ].join("");
+                const dateStr = formatEventDate(evt.start_date, evt.end_date, evt.display_date);
 
                 // Find track styling if in comparison mode
                 const matchingTrack = comparisonTracks.find(
@@ -651,6 +709,67 @@ export const TimelineViewer: React.FC<TimelineViewerProps> = ({ data, title }) =
                       className="text-xs text-brand-800 leading-relaxed"
                       dangerouslySetInnerHTML={{ __html: evt.text?.text || "" }}
                     />
+
+                    {/* Edit & Delete Action Buttons */}
+                    <div className="flex items-center justify-between mt-2.5 pt-2 border-t border-brand-100/70">
+                      <span className="text-[10px] text-brand-400 italic">
+                        {evt.media?.url ? "Has media" : ""}
+                      </span>
+                      <div className="flex items-center gap-1.5">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const recordId = (evt as any).sourceRecordId || currentRecord?.id;
+                            if (!recordId) return;
+                            const sourceRec = history.find((h) => h.id === recordId) || currentRecord;
+                            let eventIdx = idx;
+                            let cleanEvent = evt;
+                            if (sourceRec && sourceRec.timelineData?.events) {
+                              const foundIdx = sourceRec.timelineData.events.findIndex(
+                                (e) => e.unique_id === evt.unique_id || e.text?.headline === evt.text?.headline
+                              );
+                              if (foundIdx !== -1) {
+                                eventIdx = foundIdx;
+                                cleanEvent = sourceRec.timelineData.events[foundIdx];
+                              }
+                            }
+                            setEditingEvent({
+                              recordId,
+                              eventIndex: eventIdx,
+                              event: cleanEvent,
+                            });
+                          }}
+                          className="px-2 py-0.5 rounded text-[11px] font-medium text-copper-800 bg-copper-100 hover:bg-copper-200 flex items-center gap-1 transition-colors"
+                          title="Edit this event"
+                        >
+                          <Pencil className="w-3 h-3" />
+                          <span>Edit</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={async () => {
+                            const recordId = (evt as any).sourceRecordId || currentRecord?.id;
+                            if (!recordId) return;
+                            const sourceRec = history.find((h) => h.id === recordId) || currentRecord;
+                            let eventIdx = idx;
+                            if (sourceRec && sourceRec.timelineData?.events) {
+                              const foundIdx = sourceRec.timelineData.events.findIndex(
+                                (e) => e.unique_id === evt.unique_id || e.text?.headline === evt.text?.headline
+                              );
+                              if (foundIdx !== -1) eventIdx = foundIdx;
+                            }
+                            if (confirm(`Delete event "${evt.text?.headline || "Untitled"}"?`)) {
+                              await deleteEvent(recordId, eventIdx);
+                            }
+                          }}
+                          className="p-1 rounded text-brand-400 hover:text-red-500 hover:bg-red-50 transition-colors"
+                          title="Delete event from timeline"
+                        >
+                          <Trash2 className="w-3 h-3" />
+                        </button>
+                      </div>
+                    </div>
                   </div>
                 );
               })}

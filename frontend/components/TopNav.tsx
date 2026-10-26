@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, useRef } from "react";
 import Image from "next/image";
-import { Settings, Sparkles, PanelLeftClose, PanelLeft, Github, Upload } from "lucide-react";
+import { Settings, Cpu, PanelLeftClose, PanelLeft, Github, Upload } from "lucide-react";
 import { useTimelineStore } from "@/store/zustand";
 import { SettingsService } from "@/services/settings";
 import { StorageService } from "@/services/storage";
@@ -106,9 +106,6 @@ export const TopNav: React.FC = () => {
               <span className="font-bold text-white text-base tracking-tight leading-tight">
                 ChronoCraft
               </span>
-              <span className="text-[10px] font-semibold tracking-wider uppercase px-1.5 py-0.5 rounded-full bg-copper-400/20 text-copper-300 border border-copper-400/30">
-                Static
-              </span>
             </div>
             <span className="text-[11px] text-brand-300 hidden sm:inline leading-none">
               AI Chronological Visualization
@@ -135,7 +132,7 @@ export const TopNav: React.FC = () => {
           className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-brand-800 hover:bg-brand-700 text-brand-200 text-xs font-medium border border-brand-700 transition-colors"
           title="Click to configure API keys"
         >
-          <Sparkles className="w-3.5 h-3.5 text-copper-300" />
+          <Cpu className="w-3.5 h-3.5 text-copper-300" />
           <span className="capitalize">{providerInfo.provider}</span>
           <span className="text-brand-400 text-[10px]">({providerInfo.model})</span>
         </button>

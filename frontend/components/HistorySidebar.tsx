@@ -22,6 +22,7 @@ import {
   SlidersHorizontal,
   Split,
   Combine,
+  Pencil,
 } from "lucide-react";
 import { StorageService } from "@/services/storage";
 import { CachedTimelineRecord, TimelineData } from "@/types/timeline";
@@ -48,6 +49,7 @@ export const HistorySidebar: React.FC = () => {
     comparisonTracks,
     comparisonViewMode,
     setComparisonViewMode,
+    setEditingTimelineRecord,
   } = useTimelineStore();
 
   const [searchTerm, setSearchTerm] = useState("");
@@ -481,18 +483,30 @@ export const HistorySidebar: React.FC = () => {
                     </div>
 
                     {!isCompareMode && (
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          if (confirm(`Delete "${item.title || item.topic}"?`)) {
-                            deleteTimelineFromHistory(item.id);
-                          }
-                        }}
-                        className="opacity-0 group-hover:opacity-100 p-1 text-brand-400 hover:text-red-400 transition-opacity"
-                        title="Delete from history"
-                      >
-                        <Trash2 className="w-3 h-3" />
-                      </button>
+                      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setEditingTimelineRecord(item);
+                          }}
+                          className="p-1 text-brand-400 hover:text-copper-300 transition-colors"
+                          title="Edit timeline and events"
+                        >
+                          <Pencil className="w-3 h-3" />
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (confirm(`Delete "${item.title || item.topic}"?`)) {
+                              deleteTimelineFromHistory(item.id);
+                            }
+                          }}
+                          className="p-1 text-brand-400 hover:text-red-400 transition-colors"
+                          title="Delete from history"
+                        >
+                          <Trash2 className="w-3 h-3" />
+                        </button>
+                      </div>
                     )}
                   </div>
                 </div>

@@ -6,6 +6,8 @@ import { TopNav } from "@/components/TopNav";
 import { SearchBar } from "@/components/SearchBar";
 import { HistorySidebar } from "@/components/HistorySidebar";
 import { SettingsModal } from "@/components/SettingsModal";
+import { EditTimelineModal } from "@/components/EditTimelineModal";
+import { EditEventModal } from "@/components/EditEventModal";
 import { TimelineViewer } from "@/components/TimelineViewer";
 import { useTimelineStore } from "@/store/zustand";
 import { Sparkles, AlertCircle, ArrowRight, BookOpen, Key } from "lucide-react";
@@ -110,6 +112,12 @@ export default function Home() {
 
       {/* Settings Modal */}
       <SettingsModal />
+
+      {/* Timeline Editor Modal */}
+      <EditTimelineModal />
+
+      {/* Event Slide Editor Modal */}
+      <EditEventModal />
 
       {/* Main Content Area */}
       <main

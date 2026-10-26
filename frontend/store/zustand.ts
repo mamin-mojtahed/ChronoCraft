@@ -118,6 +118,18 @@ interface TimelineStore {
   comparisonTracks: ComparisonTrackInfo[];
   comparisonViewMode: "parallel" | "merged";
 
+  // Editing state for Timeline & Events
+  editingTimelineRecord: CachedTimelineRecord | null;
+  setEditingTimelineRecord: (record: CachedTimelineRecord | null) => void;
+  editingEvent: {
+    recordId: string;
+    eventIndex: number | null;
+    event: TimelineSlide;
+  } | null;
+  setEditingEvent: (
+    item: { recordId: string; eventIndex: number | null; event: TimelineSlide } | null
+  ) => void;
+
   // Actions
   setTimeline: (data: TimelineData | null, record?: CachedTimelineRecord) => void;
   setLoading: (loading: boolean, message?: string) => void;
@@ -140,6 +152,24 @@ interface TimelineStore {
   deleteTimelineFromHistory: (id: string) => Promise<void>;
   toggleFavoriteTimeline: (id: string) => Promise<void>;
   clearAllHistory: () => Promise<void>;
+
+  // Editing & Mutation Operations
+  updateTimelineRecord: (id: string, updates: Partial<CachedTimelineRecord>) => Promise<void>;
+  saveEvent: (recordId: string, eventIndex: number | null, eventData: TimelineSlide) => Promise<void>;
+  deleteEvent: (recordId: string, eventIndex: number) => Promise<void>;
+  updateTimelineMetadata: (
+    recordId: string,
+    meta: {
+      title: string;
+      topic?: string;
+      description?: string;
+      headline?: string;
+      coverText?: string;
+      coverMediaUrl?: string;
+      coverMediaCaption?: string;
+      coverMediaCredit?: string;
+    }
+  ) => Promise<void>;
 }
 
 function buildComparisonTimeline(
@@ -257,6 +287,12 @@ export const useTimelineStore = create<TimelineStore>((set, get) => ({
   historyLoading: false,
   sidebarOpen: typeof window !== "undefined" ? SettingsService.getSettings().sidebarOpen : true,
   settingsOpen: false,
+
+  // Editing state for Timeline & Events
+  editingTimelineRecord: null,
+  setEditingTimelineRecord: (record) => set({ editingTimelineRecord: record }),
+  editingEvent: null,
+  setEditingEvent: (item) => set({ editingEvent: item }),
 
   // Search input state
   searchQuery: "",
@@ -462,6 +498,197 @@ export const useTimelineStore = create<TimelineStore>((set, get) => ({
       isCompareMode: false,
       selectedHistoryIds: [],
       comparisonTracks: [],
+    });
+  },
+
+  updateTimelineRecord: async (id: string, updates: Partial<CachedTimelineRecord>) => {
+    const existing = await StorageService.getTimeline(id);
+    if (!existing) return;
+
+    const timelineData = updates.timelineData || existing.timelineData;
+    const events = timelineData.events || [];
+    const years = events
+      .map((e) => e.start_date?.year)
+      .filter((y): y is number => typeof y === "number" && !isNaN(y));
+
+    const updatedRecord: CachedTimelineRecord = {
+      ...existing,
+      ...updates,
+      timelineData,
+      eventsCount: events.length,
+      dateRange: {
+        startYear: years.length ? Math.min(...years) : existing.dateRange?.startYear || 0,
+        endYear: years.length ? Math.max(...years) : existing.dateRange?.endYear || 0,
+      },
+      updatedAt: Date.now(),
+    };
+
+    await StorageService.saveTimeline(updatedRecord);
+
+    const newHistory = get().history.map((h) => (h.id === id ? updatedRecord : h));
+    const isCurrent = get().currentRecord?.id === id;
+
+    set({
+      history: newHistory,
+      ...(isCurrent ? { currentRecord: updatedRecord, currentTimeline: { ...updatedRecord.timelineData } } : {}),
+      ...(get().editingTimelineRecord?.id === id ? { editingTimelineRecord: updatedRecord } : {}),
+    });
+
+    if (get().isCompareMode && get().selectedHistoryIds.includes(id)) {
+      get().applyComparison(get().selectedHistoryIds, get().comparisonViewMode);
+    }
+  },
+
+  saveEvent: async (recordId: string, eventIndex: number | null, eventData: TimelineSlide) => {
+    const existing = await StorageService.getTimeline(recordId);
+    if (!existing) return;
+
+    const events = [...(existing.timelineData?.events || [])];
+    if (eventIndex !== null && eventIndex >= 0 && eventIndex < events.length) {
+      events[eventIndex] = eventData;
+    } else {
+      events.push(eventData);
+    }
+
+    // Sort events chronologically
+    events.sort((a, b) => {
+      const yA = a.start_date?.year ?? 0;
+      const yB = b.start_date?.year ?? 0;
+      if (yA !== yB) return yA - yB;
+      const mA = a.start_date?.month ?? 1;
+      const mB = b.start_date?.month ?? 1;
+      if (mA !== mB) return mA - mB;
+      const dA = a.start_date?.day ?? 1;
+      const dB = b.start_date?.day ?? 1;
+      return dA - dB;
+    });
+
+    const years = events
+      .map((e) => e.start_date?.year)
+      .filter((y): y is number => typeof y === "number" && !isNaN(y));
+
+    const updatedTimelineData: TimelineData = {
+      ...existing.timelineData,
+      events,
+    };
+
+    const updatedRecord: CachedTimelineRecord = {
+      ...existing,
+      timelineData: updatedTimelineData,
+      eventsCount: events.length,
+      dateRange: {
+        startYear: years.length ? Math.min(...years) : 0,
+        endYear: years.length ? Math.max(...years) : 0,
+      },
+      updatedAt: Date.now(),
+    };
+
+    await StorageService.saveTimeline(updatedRecord);
+
+    const newHistory = get().history.map((h) => (h.id === recordId ? updatedRecord : h));
+    const isCurrent = get().currentRecord?.id === recordId;
+
+    set({
+      history: newHistory,
+      ...(isCurrent ? { currentRecord: updatedRecord, currentTimeline: { ...updatedTimelineData } } : {}),
+      ...(get().editingTimelineRecord?.id === recordId ? { editingTimelineRecord: updatedRecord } : {}),
+    });
+
+    if (get().isCompareMode && get().selectedHistoryIds.includes(recordId)) {
+      get().applyComparison(get().selectedHistoryIds, get().comparisonViewMode);
+    }
+  },
+
+  deleteEvent: async (recordId: string, eventIndex: number) => {
+    const existing = await StorageService.getTimeline(recordId);
+    if (!existing) return;
+
+    const events = [...(existing.timelineData?.events || [])];
+    if (eventIndex < 0 || eventIndex >= events.length) return;
+
+    events.splice(eventIndex, 1);
+
+    const years = events
+      .map((e) => e.start_date?.year)
+      .filter((y): y is number => typeof y === "number" && !isNaN(y));
+
+    const updatedTimelineData: TimelineData = {
+      ...existing.timelineData,
+      events,
+    };
+
+    const updatedRecord: CachedTimelineRecord = {
+      ...existing,
+      timelineData: updatedTimelineData,
+      eventsCount: events.length,
+      dateRange: {
+        startYear: years.length ? Math.min(...years) : 0,
+        endYear: years.length ? Math.max(...years) : 0,
+      },
+      updatedAt: Date.now(),
+    };
+
+    await StorageService.saveTimeline(updatedRecord);
+
+    const newHistory = get().history.map((h) => (h.id === recordId ? updatedRecord : h));
+    const isCurrent = get().currentRecord?.id === recordId;
+
+    set({
+      history: newHistory,
+      ...(isCurrent ? { currentRecord: updatedRecord, currentTimeline: { ...updatedTimelineData } } : {}),
+      ...(get().editingTimelineRecord?.id === recordId ? { editingTimelineRecord: updatedRecord } : {}),
+    });
+
+    if (get().isCompareMode && get().selectedHistoryIds.includes(recordId)) {
+      get().applyComparison(get().selectedHistoryIds, get().comparisonViewMode);
+    }
+  },
+
+  updateTimelineMetadata: async (recordId: string, meta) => {
+    const existing = await StorageService.getTimeline(recordId);
+    if (!existing) return;
+
+    const currentTitle = existing.timelineData?.title;
+    const updatedTimelineData: TimelineData = {
+      ...existing.timelineData,
+      title: {
+        ...currentTitle,
+        text: {
+          headline: meta.headline || meta.title,
+          text: meta.coverText !== undefined ? meta.coverText : (currentTitle?.text?.text || ""),
+        },
+        ...(meta.coverMediaUrl !== undefined
+          ? {
+              media: meta.coverMediaUrl
+                ? {
+                    url: meta.coverMediaUrl,
+                    caption: meta.coverMediaCaption,
+                    credit: meta.coverMediaCredit,
+                  }
+                : undefined,
+            }
+          : {}),
+      },
+    };
+
+    const updatedRecord: CachedTimelineRecord = {
+      ...existing,
+      title: meta.title,
+      topic: meta.topic || existing.topic,
+      description: meta.description !== undefined ? meta.description : existing.description,
+      timelineData: updatedTimelineData,
+      updatedAt: Date.now(),
+    };
+
+    await StorageService.saveTimeline(updatedRecord);
+
+    const newHistory = get().history.map((h) => (h.id === recordId ? updatedRecord : h));
+    const isCurrent = get().currentRecord?.id === recordId;
+
+    set({
+      history: newHistory,
+      ...(isCurrent ? { currentRecord: updatedRecord, currentTimeline: { ...updatedTimelineData } } : {}),
+      ...(get().editingTimelineRecord?.id === recordId ? { editingTimelineRecord: updatedRecord } : {}),
     });
   },
 }));
