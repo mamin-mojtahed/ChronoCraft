@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { Search, Loader2, Sparkles, SlidersHorizontal } from "lucide-react";
+import { Search, Loader2, SlidersHorizontal } from "lucide-react";
 import { useTimelineStore } from "@/store/zustand";
 import { LLMService } from "@/services/llm";
 import { StorageService } from "@/services/storage";
@@ -99,9 +99,6 @@ export const SearchBar: React.FC = () => {
     <div className="w-full max-w-2xl mx-auto px-4 z-20">
       <form onSubmit={handleSearch} className="relative flex flex-col gap-2">
         <div className="relative flex items-center bg-white rounded-2xl shadow-xl shadow-brand-950/5 border border-brand-200/80 p-2 transition-all focus-within:ring-2 focus-within:ring-copper-400 focus-within:border-copper-400">
-          <div className="pl-3 pr-2 text-brand-400">
-            <Search className="w-5 h-5" />
-          </div>
 
           <input
             id="timeline-research-input"
@@ -112,7 +109,7 @@ export const SearchBar: React.FC = () => {
             placeholder={
               PLACEHOLDER_TOPICS[Math.floor(Math.random() * PLACEHOLDER_TOPICS.length)]
             }
-            className="flex-1 bg-transparent border-none outline-none text-brand-950 placeholder-brand-300 text-sm sm:text-base px-1 py-1"
+            className="flex-1 bg-transparent border-none outline-none text-brand-950 placeholder-brand-300 text-sm sm:text-base px-3 py-1"
           />
 
           <div className="flex items-center gap-1.5 pr-1">
@@ -141,8 +138,8 @@ export const SearchBar: React.FC = () => {
                 </>
               ) : (
                 <>
-                  <Sparkles className="w-4 h-4 text-brand-900" />
-                  <span>Generate</span>
+                  <Search className="w-4 h-4 text-brand-900" />
+                  <span>Search</span>
                 </>
               )}
             </button>

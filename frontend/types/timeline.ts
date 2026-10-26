@@ -68,6 +68,7 @@ export interface CachedTimelineRecord {
   tags?: string[];
   isMerged?: boolean;
   sourceRecordIds?: string[];
+  colorHex?: string;
 }
 
 export interface ExtractedDateParts {

@@ -12,7 +12,6 @@ import {
   CheckCircle2,
   AlertCircle,
   Eye,
-  Sparkles,
 } from "lucide-react";
 import { useTimelineStore } from "@/store/zustand";
 import { TimelineSlide, extractDateParts } from "@/types/timeline";

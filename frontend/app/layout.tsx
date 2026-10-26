@@ -12,8 +12,8 @@ export const metadata: Metadata = {
   keywords: ["timeline", "history", "data visualization", "chronology", "gemini ai", "timelinejs"],
   authors: [{ name: "ChronoCraft Team" }],
   icons: {
-    icon: `${basePath}/logo.jpeg`,
-    apple: `${basePath}/logo.jpeg`,
+    icon: `${basePath}/logo_zoomed.png`,
+    apple: `${basePath}/logo_zoomed.png`,
   },
 };
 
@@ -26,8 +26,8 @@ export default function RootLayout({
     <html lang="en">
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <link rel="icon" href={`${basePath}/logo.jpeg`} />
-        <link rel="apple-touch-icon" href={`${basePath}/logo.jpeg`} />
+        <link rel="icon" type="image/png" href={`${basePath}/logo_zoomed.png`} />
+        <link rel="apple-touch-icon" href={`${basePath}/logo_zoomed.png`} />
       </head>
       <body className={`${inter.className} bg-[#F8F6F4] text-brand-950 antialiased`}>
         {children}

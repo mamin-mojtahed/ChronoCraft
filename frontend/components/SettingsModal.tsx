@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { X, Key, CheckCircle2, AlertCircle, ExternalLink, Sparkles } from "lucide-react";
+import { X, Key, CheckCircle2, AlertCircle, ExternalLink} from "lucide-react";
 import { SettingsService, LLMProviderId } from "@/services/settings";
 import { LLMService } from "@/services/llm";
 import { useTimelineStore } from "@/store/zustand";
@@ -103,7 +103,6 @@ export const SettingsModal: React.FC = () => {
               >
                 <div className="flex items-center justify-between w-full">
                   <span className="font-bold flex items-center gap-1.5">
-                    <Sparkles className="w-4 h-4 text-copper-500" />
                     Google Gemini
                   </span>
                   <span className="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-copper-200/80 text-copper-900">

@@ -10,7 +10,7 @@ import { EditTimelineModal } from "@/components/EditTimelineModal";
 import { EditEventModal } from "@/components/EditEventModal";
 import { TimelineViewer } from "@/components/TimelineViewer";
 import { useTimelineStore } from "@/store/zustand";
-import { Sparkles, AlertCircle, ArrowRight, BookOpen, Key } from "lucide-react";
+import { Clock, AlertCircle, ArrowRight, BookOpen, Key } from "lucide-react";
 import { SettingsService } from "@/services/settings";
 import { StorageService } from "@/services/storage";
 
@@ -172,7 +172,7 @@ export default function Home() {
           <div className="flex-1 flex flex-col items-center justify-center p-8 text-center min-h-[60vh]">
             <div className="relative mb-6">
               <div className="w-16 h-16 rounded-2xl bg-copper-100 border border-copper-300/40 flex items-center justify-center text-copper-700 animate-pulse">
-                <Sparkles className="w-8 h-8" />
+                <Clock className="w-8 h-8" />
               </div>
               <div className="absolute -inset-1 rounded-2xl border-2 border-copper-400/40 animate-ping opacity-25" />
             </div>
@@ -190,9 +190,6 @@ export default function Home() {
         ) : currentTimeline ? (
           <div className="flex-1 flex flex-col">
             <TimelineViewer data={currentTimeline} title={currentRecord?.title} />
-            <div className="p-4 bg-white/70 backdrop-blur-sm border-t border-brand-200">
-              <SearchBar />
-            </div>
           </div>
         ) : (
           /* Empty / Hero State */
@@ -200,7 +197,7 @@ export default function Home() {
             {/* Center Logo Emblem */}
             <div className="relative w-20 h-20 sm:w-24 sm:h-24 rounded-3xl overflow-hidden border-2 border-copper-300 shadow-xl shadow-copper-500/10 mb-6 bg-brand-950 flex-shrink-0">
               <Image
-                src={`${process.env.NEXT_PUBLIC_BASE_PATH || ""}/logo.jpeg`}
+                src={`${process.env.NEXT_PUBLIC_BASE_PATH || ""}/logo_zoomed.png`}
                 alt="ChronoCraft"
                 width={96}
                 height={96}

@@ -7,22 +7,20 @@ import {
   Star,
   Trash2,
   Search,
-  ChevronRight,
   Plus,
   Calendar,
-  Sparkles,
   Download,
   Upload,
   CheckCircle2,
   AlertCircle,
   Layers,
-  CheckSquare,
-  Square,
+  Check,
   X,
   SlidersHorizontal,
   Split,
   Combine,
   Pencil,
+  Database,
 } from "lucide-react";
 import { StorageService } from "@/services/storage";
 import { CachedTimelineRecord, TimelineData } from "@/types/timeline";
@@ -342,13 +340,13 @@ export const HistorySidebar: React.FC = () => {
             <div className="p-6 text-center text-xs text-brand-400">Loading history...</div>
           ) : filteredHistory.length === 0 ? (
             <div className="p-6 text-center text-xs text-brand-400 space-y-2">
-              <Sparkles className="w-6 h-6 mx-auto text-brand-600" />
+              <Clock className="w-6 h-6 mx-auto text-brand-600" />
               <p>
                 {searchTerm
                   ? "No timelines match your search."
                   : filterFavorite
                   ? "No starred timelines yet."
-                  : "No saved timelines. Generate or import a timeline to see it here!"}
+                  : "No saved timelines. Search or import a timeline to see it here!"}
               </p>
             </div>
           ) : (
@@ -409,18 +407,27 @@ export const HistorySidebar: React.FC = () => {
                             toggleSelectHistoryId(item.id);
                           }}
                           className="pt-0.5 flex-shrink-0"
-                          style={{
-                            color: assignedTrackColor?.hex || undefined,
-                          }}
+                          title={isSelected ? "Deselect timeline" : "Select timeline"}
                         >
-                          {isSelected ? (
-                            <CheckSquare
-                              className="w-4 h-4 fill-current"
-                              style={{ color: assignedTrackColor?.hex || "#DCA48E" }}
-                            />
-                          ) : (
-                            <Square className="w-4 h-4 text-brand-500" />
-                          )}
+                          <div
+                            className={`w-4 h-4 rounded flex items-center justify-center transition-all ${
+                              isSelected
+                                ? "shadow-xs"
+                                : "border border-brand-500 bg-brand-900/80 hover:border-brand-400"
+                            }`}
+                            style={
+                              isSelected
+                                ? {
+                                    backgroundColor: assignedTrackColor?.hex || "#DCA48E",
+                                    borderColor: assignedTrackColor?.hex || "#DCA48E",
+                                  }
+                                : undefined
+                            }
+                          >
+                            {isSelected && (
+                              <Check className="w-3 h-3 text-brand-950 stroke-[3]" />
+                            )}
+                          </div>
                         </button>
                       )}
 
@@ -515,44 +522,38 @@ export const HistorySidebar: React.FC = () => {
           )}
         </div>
 
-        {/* Footer: Import & Export Options */}
-        <div className="p-3 border-t border-brand-800 bg-brand-950/60 flex items-center justify-between text-xs text-brand-300">
-          <div className="flex items-center gap-3">
+        {/* Footer: Import & Export Options and DB Type */}
+        <div className="p-3.5 border-t border-brand-800 bg-brand-950/80 flex items-center justify-between gap-2 text-xs">
+          <div className="flex items-center gap-2">
             <button
               onClick={() => fileInputRef.current?.click()}
-              className="flex items-center gap-1 text-copper-300 hover:text-copper-200 transition-colors text-[11px] font-medium"
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-brand-800/80 hover:bg-brand-700 text-copper-300 hover:text-copper-100 transition-all text-xs font-semibold border border-brand-700/60 shadow-xs"
               title="Import timeline or backup JSON file"
             >
-              <Upload className="w-3.5 h-3.5" />
+              <Upload className="w-4 h-4 text-copper-400" />
               <span>Import</span>
             </button>
 
             <button
               onClick={handleExportBackup}
               disabled={history.length === 0}
-              className="flex items-center gap-1 text-brand-300 hover:text-white disabled:opacity-40 transition-colors text-[11px]"
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-brand-800/80 hover:bg-brand-700 text-brand-200 hover:text-white disabled:opacity-40 transition-all text-xs font-medium border border-brand-700/60 shadow-xs"
               title="Download JSON backup of all cached timelines"
             >
-              <Download className="w-3.5 h-3.5" />
+              <Download className="w-4 h-4 text-brand-300" />
               <span>Export</span>
             </button>
           </div>
 
-          <span className="text-[10px] text-brand-500 font-mono">IndexedDB</span>
+          <div
+            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-brand-900 border border-brand-800 text-xs font-mono text-brand-300 font-medium shadow-xs"
+            title="Local browser database: IndexedDB"
+          >
+            <Database className="w-3.5 h-3.5 text-copper-400" />
+            <span className="text-xs">IndexedDB</span>
+          </div>
         </div>
       </aside>
-
-      {/* Floating Toggle Button when sidebar is collapsed */}
-      {!sidebarOpen && (
-        <button
-          onClick={toggleSidebar}
-          className="fixed top-20 left-3 z-30 p-2 rounded-xl bg-brand-900/95 text-copper-200 shadow-xl border border-brand-700/80 hover:bg-brand-800 transition-all flex items-center gap-1.5 text-xs backdrop-blur-sm"
-          title="Open Timeline History"
-        >
-          <ChevronRight className="w-4 h-4" />
-          <span className="hidden sm:inline font-semibold">History</span>
-        </button>
-      )}
     </>
   );
 };

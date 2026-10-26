@@ -75,6 +75,23 @@ export function getTimelineTrackColor(
   history?: CachedTimelineRecord[]
 ): TrackColor {
   if (!record) return TRACK_PALETTE[0];
+  if (record.colorHex) {
+    const matched = TRACK_PALETTE.find(
+      (c) =>
+        c.hex.toLowerCase() === record.colorHex?.toLowerCase() ||
+        c.name.toLowerCase() === record.colorHex?.toLowerCase()
+    );
+    if (matched) return matched;
+    return {
+      name: "Custom",
+      hex: record.colorHex,
+      bg: `${record.colorHex}18`,
+      border: record.colorHex,
+      text: "#1A2121",
+      swimlane: `linear-gradient(90deg, ${record.colorHex} 0%, #1A2121 100%)`,
+      navBg: `linear-gradient(180deg, ${record.colorHex} 0%, #000000 100%)`,
+    };
+  }
   if (history && history.length > 0) {
     const idx = history.findIndex((h) => h.id === record.id);
     if (idx !== -1) {

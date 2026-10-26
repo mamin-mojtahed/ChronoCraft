@@ -15,9 +15,10 @@ import {
   Trash2,
   Clock,
   Layers,
+  Palette,
 } from "lucide-react";
 import { TimelineSlide, formatEventDate } from "@/types/timeline";
-import { useTimelineStore } from "@/store/zustand";
+import { useTimelineStore, TRACK_PALETTE, getTimelineTrackColor } from "@/store/zustand";
 
 export const EditTimelineModal: React.FC = () => {
   const {
@@ -36,6 +37,7 @@ export const EditTimelineModal: React.FC = () => {
   const [description, setDescription] = useState("");
   const [startYear, setStartYear] = useState<number | string>("");
   const [endYear, setEndYear] = useState<number | string>("");
+  const [colorHex, setColorHex] = useState("");
 
   // Title Slide / Cover states
   const [coverHeadline, setCoverHeadline] = useState("");
@@ -53,6 +55,10 @@ export const EditTimelineModal: React.FC = () => {
       setTitle(editingTimelineRecord.title || "");
       setTopic(editingTimelineRecord.topic || "");
       setDescription(editingTimelineRecord.description || "");
+      setColorHex(
+        editingTimelineRecord.colorHex ||
+          getTimelineTrackColor(editingTimelineRecord).hex
+      );
       setStartYear(
         editingTimelineRecord.dateRange?.startYear !== undefined
           ? editingTimelineRecord.dateRange.startYear
@@ -117,6 +123,7 @@ export const EditTimelineModal: React.FC = () => {
         title: title.trim(),
         topic: topic.trim() || title.trim(),
         description: description.trim() || undefined,
+        colorHex: colorHex || undefined,
         timelineData: updatedTimelineData,
         dateRange: {
           startYear: startYear !== "" ? Number(startYear) : (editingTimelineRecord.dateRange?.startYear || 0),
@@ -329,6 +336,38 @@ export const EditTimelineModal: React.FC = () => {
                 <p className="text-[10px] text-brand-500">
                   Pre-populated from milestones; editable for defining custom historical eras.
                 </p>
+              </div>
+
+              {/* Timeline Theme & Color Selection */}
+              <div className="p-3.5 rounded-xl bg-brand-50/70 border border-brand-200/80 space-y-2.5">
+                <label className="block text-xs font-bold text-brand-900 flex items-center gap-1.5">
+                  <Palette className="w-3.5 h-3.5 text-copper-600" />
+                  Timeline Color Theme
+                </label>
+                <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
+                  {TRACK_PALETTE.map((color) => {
+                    const isSelected = colorHex?.toLowerCase() === color.hex.toLowerCase();
+                    return (
+                      <button
+                        key={color.hex}
+                        type="button"
+                        onClick={() => setColorHex(color.hex)}
+                        className={`p-2 rounded-xl border flex flex-col items-center gap-1.5 transition-all text-center ${
+                          isSelected
+                            ? "ring-2 ring-copper-500 border-copper-400 bg-white shadow-xs font-bold"
+                            : "border-brand-200 bg-white/70 hover:bg-white text-brand-700"
+                        }`}
+                        title={`Select ${color.name} theme`}
+                      >
+                        <span
+                          className="w-5 h-5 rounded-full shadow-inner flex-shrink-0"
+                          style={{ backgroundColor: color.hex }}
+                        />
+                        <span className="text-[11px] leading-none">{color.name}</span>
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
             </div>
           )}
