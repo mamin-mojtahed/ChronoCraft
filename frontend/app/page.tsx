@@ -204,7 +204,7 @@ export default function Home() {
             {/* Center Logo Emblem */}
             <div className="relative w-20 h-20 sm:w-24 sm:h-24 rounded-3xl overflow-hidden border-2 border-copper-300 shadow-xl shadow-copper-500/10 mb-6 bg-brand-950 flex-shrink-0">
               <Image
-                src={`${process.env.NEXT_PUBLIC_BASE_PATH || ""}/logo_zoomed.png`}
+                src={`${process.env.NEXT_PUBLIC_BASE_PATH || ""}/icon.png`}
                 alt="ChronoCraft"
                 width={96}
                 height={96}

@@ -27,7 +27,7 @@ export const TopNav: React.FC = () => {
         <div className="flex items-center gap-3 cursor-pointer" onClick={() => setTimeline(null)}>
           <div className="relative w-9 h-9 rounded-xl overflow-hidden border border-copper-400/40 shadow-sm shadow-copper-500/10 flex-shrink-0 bg-brand-950">
             <Image
-              src={`${process.env.NEXT_PUBLIC_BASE_PATH || ""}/logo_zoomed.png`}
+              src={`${process.env.NEXT_PUBLIC_BASE_PATH || ""}/icon.png`}
               alt="ChronoCraft Logo"
               width={36}
               height={36}
