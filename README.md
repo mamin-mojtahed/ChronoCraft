@@ -7,7 +7,7 @@
   <img id="logo" src="frontend/app/icon.png" alt="Logo" width="185">
   <h3 align="center">ChronoCraft</h3>
   <p align="center">
-    Timeline Research Tool | Crafting Data into Stories, One Timeline at a Time
+    Timeline Research & Visualization Tool | Crafting Data into Stories, One Timeline at a Time
     <br />
     <a href="https://chronocraft.wiki"><strong>chronocraft.wiki</strong></a>
     <br />
