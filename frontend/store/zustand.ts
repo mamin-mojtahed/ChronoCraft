@@ -234,10 +234,11 @@ function buildComparisonTimeline(
           // Pure milestone title: No track label prepended, so .tl-timemarker displays the actual milestone title!
           headline: evt.text?.headline || "",
           // Slide body includes the colored track badge and styled card container
-          text: `<div style="display:inline-flex; align-items:center; gap:6px; background-color:${trackColor.hex}; color:${trackBadgeTextColor}; padding:3px 12px; border-radius:9999px; font-size:11px; font-weight:700; margin-bottom:12px; box-shadow:0 1px 3px rgba(0,0,0,0.15);"><span style="width:6px; height:6px; border-radius:9999px; background:currentColor;"></span>${trackName}</div><div style="background-color:${trackColor.bg}; border:1.5px solid ${trackColor.border}; border-left:5px solid ${trackColor.hex}; border-radius:10px; padding:16px; color:#2D3737; box-shadow:0 2px 8px rgba(0,0,0,0.04); font-size:0.95em; line-height:1.6;">${evt.text?.text || ""}</div>`,
+          text: `<div style="display:inline-flex; align-items:center; gap:6px; background-color:${trackColor.hex}; color:${trackBadgeTextColor}; padding:3px 12px; border-radius:9999px; font-size:11px; font-weight:700; margin-bottom:12px; box-shadow:0 1px 3px rgba(0,0,0,0.15); text-shadow:none;"><span style="width:6px; height:6px; border-radius:9999px; background:currentColor;"></span>${trackName}</div><div style="background-color:${trackColor.bg}; border:1.5px solid ${trackColor.border}; border-left:5px solid ${trackColor.hex}; border-radius:10px; padding:16px; color:#2D3737; box-shadow:0 2px 8px rgba(0,0,0,0.04); font-size:0.95em; line-height:1.6; text-shadow:none;">${evt.text?.text || ""}</div>`,
         },
         trackColorHex: trackColor.hex,
         trackTitle: trackName,
+        rawText: evt.text?.text || "",
         sourceRecordId: rec.id,
       });
     });
@@ -262,6 +263,7 @@ function buildComparisonTimeline(
 
   const data: TimelineData = {
     title: {
+      unique_id: "title-slide",
       background: {
         color: "#252F2F",
       },

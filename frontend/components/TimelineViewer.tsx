@@ -25,15 +25,34 @@ interface TimelineViewerProps {
   title?: string;
 }
 
+const getEventDescription = (evt: TimelineSlide): string => {
+  if (evt.rawText) return evt.rawText;
+  const raw = evt.text?.text || "";
+  if (!raw) return "";
+
+  // If text contains the comparison wrapper HTML, strip wrapper card & badge to get clean description
+  if (raw.includes("<div") && raw.includes("</div>")) {
+    const stripped = raw
+      .replace(/<div style="display:inline-flex[\s\S]*?<\/div>/gi, "")
+      .replace(/<div[^>]*>/gi, "")
+      .replace(/<\/div>/gi, "")
+      .trim();
+    if (stripped) return stripped;
+  }
+  return raw;
+};
+
 export const TimelineViewer: React.FC<TimelineViewerProps> = ({ data, title }) => {
   const rootRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const timelineInstanceRef = useRef<any>(null);
   const isNavHoveredRef = useRef(false);
   const currentSlideIdRef = useRef<string | null>(null);
+  const currentSlideIndexRef = useRef<number>(0);
+  const applyMarkerColorsRef = useRef<() => void>(() => {});
 
   const [scriptLoaded, setScriptLoaded] = useState(false);
-  const [renderKey, setRenderKey] = useState(0);
+  const [renderKey] = useState(0);
   const [showOutline, setShowOutline] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isNavRevealed, setIsNavRevealed] = useState(false);
@@ -59,12 +78,15 @@ export const TimelineViewer: React.FC<TimelineViewerProps> = ({ data, title }) =
     if (typeof window === "undefined") return;
 
     const cssId = "timelinejs-css";
-    if (!document.getElementById(cssId)) {
-      const link = document.createElement("link");
+    let link = document.getElementById(cssId) as HTMLLinkElement | null;
+    if (!link) {
+      link = document.createElement("link");
       link.id = cssId;
       link.rel = "stylesheet";
       link.href = "https://cdn.knightlab.com/libs/timeline3/latest/css/timeline.css";
-      document.head.appendChild(link);
+      document.head.insertBefore(link, document.head.firstChild);
+    } else if (link.nextSibling) {
+      document.head.insertBefore(link, document.head.firstChild);
     }
 
     if ((window as any).TL?.Timeline) {
@@ -108,13 +130,20 @@ export const TimelineViewer: React.FC<TimelineViewerProps> = ({ data, title }) =
           : 36
         : 28;
 
-      let startSlide = 0;
-      if (currentSlideIdRef.current && data.events) {
-        const foundIdx = data.events.findIndex(
-          (e) => e.unique_id === currentSlideIdRef.current || e.text?.headline === currentSlideIdRef.current
-        );
-        if (foundIdx !== -1) {
-          startSlide = data.title ? foundIdx + 1 : foundIdx;
+      let startSlide = currentSlideIndexRef.current || 0;
+      if (currentSlideIdRef.current) {
+        if (currentSlideIdRef.current === "title-slide" || currentSlideIdRef.current === "title") {
+          startSlide = 0;
+        } else if (data.events) {
+          const foundIdx = data.events.findIndex(
+            (e, i) =>
+              e.unique_id === currentSlideIdRef.current ||
+              `evt-${i}` === currentSlideIdRef.current ||
+              e.text?.headline === currentSlideIdRef.current
+          );
+          if (foundIdx !== -1) {
+            startSlide = data.title ? foundIdx + 1 : foundIdx;
+          }
         }
       }
 
@@ -126,7 +155,7 @@ export const TimelineViewer: React.FC<TimelineViewerProps> = ({ data, title }) =
         timenav_mobile_height_percentage: 42,
         scale_factor: 1,
         duration: 450,
-        slide_padding_lr: 30,
+        slide_padding_lr: 60,
         debug: false,
         is_embed: true,
         start_at_slide: startSlide,
@@ -136,6 +165,7 @@ export const TimelineViewer: React.FC<TimelineViewerProps> = ({ data, title }) =
 
       // Direct styling pass for swimlanes, navigation bar, and markers
       const applyMarkerColors = () => {
+        applyMarkerColorsRef.current = applyMarkerColors;
         try {
           if (isComparison) {
             // Style swimlane rows in parallel mode by matching each track by title
@@ -190,7 +220,7 @@ export const TimelineViewer: React.FC<TimelineViewerProps> = ({ data, title }) =
                   msgEl.style.setProperty("letter-spacing", "0.04em", "important");
                   msgEl.style.setProperty("padding", "5px 14px", "important");
                   msgEl.style.setProperty("border-radius", "8px", "important");
-                  msgEl.style.setProperty("margin-left", "14px", "important");
+                  msgEl.style.setProperty("margin-left", "80px", "important");
                   msgEl.style.setProperty(
                     "box-shadow",
                     `0 4px 14px ${matchedTrack.color.hex}40`,
@@ -306,6 +336,19 @@ export const TimelineViewer: React.FC<TimelineViewerProps> = ({ data, title }) =
         timelineInstanceRef.current.on("change", (e: any) => {
           if (e?.unique_id) {
             currentSlideIdRef.current = e.unique_id;
+            if (data?.events) {
+              const idx = data.events.findIndex(
+                (evt, i) =>
+                  evt.unique_id === e.unique_id ||
+                  `evt-${i}` === e.unique_id ||
+                  evt.text?.headline === e.unique_id
+              );
+              if (idx !== -1) {
+                currentSlideIndexRef.current = data.title ? idx + 1 : idx;
+              } else {
+                currentSlideIndexRef.current = 0;
+              }
+            }
           } else if (timelineInstanceRef.current?.current_id) {
             currentSlideIdRef.current = timelineInstanceRef.current.current_id;
           }
@@ -320,20 +363,32 @@ export const TimelineViewer: React.FC<TimelineViewerProps> = ({ data, title }) =
     scriptLoaded,
     data,
     renderKey,
-    isFullscreen,
     isComparison,
     comparisonViewMode,
     comparisonTracks,
     currentTrackColor,
   ]);
 
-  // Handle window resizing
+  // Handle window resizing smoothly without re-creating the timeline or altering the current slide
   useEffect(() => {
+    let resizeTimer: NodeJS.Timeout;
     const handleResize = () => {
-      setRenderKey((prev) => prev + 1);
+      if (timelineInstanceRef.current?.updateDisplay) {
+        timelineInstanceRef.current.updateDisplay();
+      }
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(() => {
+        if (timelineInstanceRef.current?.updateDisplay) {
+          timelineInstanceRef.current.updateDisplay();
+        }
+        applyMarkerColorsRef.current();
+      }, 100);
     };
     window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
+    return () => {
+      window.removeEventListener("resize", handleResize);
+      clearTimeout(resizeTimer);
+    };
   }, []);
 
   // Listen to browser fullscreen changes (e.g. user pressing Esc or browser UI)
@@ -348,6 +403,12 @@ export const TimelineViewer: React.FC<TimelineViewerProps> = ({ data, title }) =
       } else {
         setIsNavRevealed(false);
       }
+      setTimeout(() => {
+        if (timelineInstanceRef.current?.updateDisplay) {
+          timelineInstanceRef.current.updateDisplay();
+        }
+        applyMarkerColorsRef.current();
+      }, 100);
     };
 
     document.addEventListener("fullscreenchange", handleFullscreenChange);
@@ -390,6 +451,12 @@ export const TimelineViewer: React.FC<TimelineViewerProps> = ({ data, title }) =
         console.warn("Exit fullscreen failed:", err);
       }
     }
+    setTimeout(() => {
+      if (timelineInstanceRef.current?.updateDisplay) {
+        timelineInstanceRef.current.updateDisplay();
+      }
+      applyMarkerColorsRef.current();
+    }, 100);
   }, [isFullscreen]);
 
   // Keyboard shortcut: Escape to exit fullscreen
@@ -678,55 +745,36 @@ export const TimelineViewer: React.FC<TimelineViewerProps> = ({ data, title }) =
             <div className="flex-1 overflow-y-auto p-4 space-y-3 min-h-0 overscroll-contain">
               {data.events.map((evt, idx) => {
                 const dateStr = formatEventDate(evt.start_date, evt.end_date, evt.display_date);
-
-                // Find track styling if in comparison mode
+                const trackName = evt.group || (evt as any).trackTitle;
                 const matchingTrack = comparisonTracks.find(
                   (t) => t.title === evt.group || t.title === (evt as any).trackTitle
                 );
+                const description = getEventDescription(evt);
 
                 return (
                   <div
                     key={evt.unique_id || idx}
-                    style={
-                      matchingTrack
-                        ? {
-                            backgroundColor: matchingTrack.color.bg,
-                            border: `1.5px solid ${matchingTrack.color.border}`,
-                            borderLeft: `5px solid ${matchingTrack.color.hex}`,
-                          }
-                        : undefined
-                    }
-                    className={`p-3 rounded-xl transition-all shadow-xs ${
-                      matchingTrack
-                        ? ""
-                        : "border border-brand-100 bg-brand-50/40 hover:bg-brand-50"
-                    }`}
+                    className="p-3 rounded-xl border border-brand-100 bg-brand-50/40 hover:bg-brand-50 transition-all shadow-xs"
                   >
                     <div className="flex items-center justify-between text-xs mb-1.5">
                       <span
                         className="font-mono font-bold px-2 py-0.5 rounded text-xs"
-                        style={
-                          matchingTrack
-                            ? {
-                                backgroundColor: matchingTrack.color.hex,
-                                color: "#1A2121",
-                              }
-                            : {
-                                backgroundColor: "#FAF4F0",
-                                color: "#9E5F47",
-                              }
-                        }
+                        style={{
+                          backgroundColor: "#FAF4F0",
+                          color: "#9E5F47",
+                        }}
                       >
                         {dateStr}
                       </span>
-                      {(evt.group || (evt as any).trackTitle) && (
+                      {trackName && (
                         <span
-                          className="text-[10px] font-bold tracking-wider px-2 py-0.5 rounded-full"
+                          className="text-[10px] font-bold tracking-wider px-2 py-0.5 rounded-full inline-flex items-center gap-1.5"
                           style={
                             matchingTrack
                               ? {
-                                  backgroundColor: matchingTrack.color.border,
+                                  backgroundColor: `${matchingTrack.color.hex}20`,
                                   color: matchingTrack.color.text,
+                                  border: `1px solid ${matchingTrack.color.border}60`,
                                 }
                               : {
                                   backgroundColor: "#E2E8F0",
@@ -734,7 +782,13 @@ export const TimelineViewer: React.FC<TimelineViewerProps> = ({ data, title }) =
                                 }
                           }
                         >
-                          {evt.group || (evt as any).trackTitle}
+                          {matchingTrack && (
+                            <span
+                              className="w-1.5 h-1.5 rounded-full flex-shrink-0"
+                              style={{ backgroundColor: matchingTrack.color.hex }}
+                            />
+                          )}
+                          {trackName}
                         </span>
                       )}
                     </div>
@@ -742,10 +796,12 @@ export const TimelineViewer: React.FC<TimelineViewerProps> = ({ data, title }) =
                     <h4 className="font-bold text-xs text-brand-950 mb-1">
                       {evt.text?.headline || ""}
                     </h4>
-                    <div
-                      className="text-xs text-brand-800 leading-relaxed"
-                      dangerouslySetInnerHTML={{ __html: evt.text?.text || "" }}
-                    />
+                    {description && (
+                      <div
+                        className="text-xs text-brand-800 leading-relaxed"
+                        dangerouslySetInnerHTML={{ __html: description }}
+                      />
+                    )}
 
                     {/* Edit & Delete Action Buttons */}
                     <div className="flex items-center justify-between mt-2.5 pt-2 border-t border-brand-100/70">

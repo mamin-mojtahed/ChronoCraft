@@ -35,10 +35,12 @@ export interface TimelineSlide {
     color?: string;
   };
   unique_id?: string;
+  rawText?: string;
 }
 
 export interface TimelineData {
   title?: {
+    unique_id?: string;
     media?: TimelineMedia;
     text: TimelineText;
     background?: {

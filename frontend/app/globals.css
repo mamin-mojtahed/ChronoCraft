@@ -28,62 +28,259 @@ body {
   background-color: #FAFAFA !important;
 }
 
-/* Make slide content container visible, scrollable, and never cut off */
-.tl-slide .tl-slide-content-container {
-  max-height: 100% !important;
-  overflow-y: auto !important;
-  padding: 1.5rem 2rem 2.5rem 2rem !important;
+/* Ensure slide containers fill available space symmetrically with TimelineJS's flexible sizing */
+.tl-slide .tl-slide-scrollable-container {
+  width: 100% !important;
+  height: 100% !important;
 }
 
-/* Slide content flex layout */
+.tl-slide .tl-slide-content-container {
+  width: 100% !important;
+  height: 100% !important;
+  box-sizing: border-box !important;
+  padding: 1.25rem 0 !important;
+  vertical-align: middle !important;
+}
+
 .tl-slide-content {
-  max-width: 1100px !important;
+  box-sizing: border-box !important;
   margin: 0 auto !important;
 }
 
-/* Headline styling */
+/* =========================================================
+   Event Slide Headline, Date & Content Visibility Overrides
+   Explicitly overrides Knight Lab's .tl-slide-has-background rules
+   which force white text and blurry text-shadow on event cards.
+   ========================================================= */
+
+/* Eliminate all unwanted text shadows on regular event slides */
+.tl-timeline .tl-slide:not(.tl-slide-titleslide) .tl-text,
+.tl-timeline .tl-slide:not(.tl-slide-titleslide) .tl-text-content-container,
+.tl-timeline .tl-slide:not(.tl-slide-titleslide) .tl-text-content,
+.tl-timeline .tl-slide:not(.tl-slide-titleslide) .tl-text-content *,
+.tl-timeline .tl-slide:not(.tl-slide-titleslide) .tl-headline,
+.tl-timeline .tl-slide:not(.tl-slide-titleslide) .tl-headline-date,
+.tl-timeline .tl-slide:not(.tl-slide-titleslide) .tl-credit,
+.tl-timeline .tl-slide:not(.tl-slide-titleslide) .tl-credit *,
+.tl-timeline .tl-slide:not(.tl-slide-titleslide) .tl-credit a,
+.tl-timeline .tl-slide:not(.tl-slide-titleslide) .tl-caption,
+.tl-timeline .tl-slide:not(.tl-slide-titleslide) .tl-caption *,
+.tl-timeline .tl-slide:not(.tl-slide-titleslide) .tl-caption a,
+.tl-timeline .tl-slide:not(.tl-slide-titleslide) a,
+.tl-timeline .tl-slide.tl-slide-has-background:not(.tl-slide-titleslide) .tl-text,
+.tl-timeline .tl-slide.tl-slide-has-background:not(.tl-slide-titleslide) .tl-text-content-container,
+.tl-timeline .tl-slide.tl-slide-has-background:not(.tl-slide-titleslide) .tl-text-content,
+.tl-timeline .tl-slide.tl-slide-has-background:not(.tl-slide-titleslide) .tl-text-content *,
+.tl-timeline .tl-slide.tl-slide-has-background:not(.tl-slide-titleslide) .tl-headline,
+.tl-timeline .tl-slide.tl-slide-has-background:not(.tl-slide-titleslide) .tl-headline-date,
+.tl-timeline .tl-slide.tl-slide-has-background:not(.tl-slide-titleslide) .tl-credit,
+.tl-timeline .tl-slide.tl-slide-has-background:not(.tl-slide-titleslide) .tl-credit *,
+.tl-timeline .tl-slide.tl-slide-has-background:not(.tl-slide-titleslide) .tl-credit a,
+.tl-timeline .tl-slide.tl-slide-has-background:not(.tl-slide-titleslide) .tl-caption,
+.tl-timeline .tl-slide.tl-slide-has-background:not(.tl-slide-titleslide) .tl-caption *,
+.tl-timeline .tl-slide.tl-slide-has-background:not(.tl-slide-titleslide) .tl-caption a,
+.tl-timeline .tl-slide.tl-slide-has-background:not(.tl-slide-titleslide) a,
+.tl-timeline .tl-slide.tl-full-color-background:not(.tl-slide-titleslide) .tl-credit,
+.tl-timeline .tl-slide.tl-full-color-background:not(.tl-slide-titleslide) .tl-credit *,
+.tl-timeline .tl-slide.tl-full-color-background:not(.tl-slide-titleslide) .tl-credit a,
+.tl-timeline .tl-slide.tl-full-color-background:not(.tl-slide-titleslide) .tl-caption,
+.tl-timeline .tl-slide.tl-full-color-background:not(.tl-slide-titleslide) .tl-caption *,
+.tl-timeline .tl-slide.tl-full-color-background:not(.tl-slide-titleslide) .tl-caption a,
+.tl-timeline .tl-slide.tl-full-color-background:not(.tl-slide-titleslide) a,
+.tl-timeline .tl-slide.tl-full-color-background:not(.tl-slide-titleslide) .vcard a,
+.tl-timeline .tl-slide.tl-full-image-background:not(.tl-slide-titleslide) a,
+.tl-timeline .tl-slide.tl-full-image-background:not(.tl-slide-titleslide) .vcard a,
+.tl-timeline .tl-slide.tl-slide-has-background:not(.tl-slide-titleslide) h2,
+.tl-timeline .tl-slide.tl-slide-has-background:not(.tl-slide-titleslide) h3,
+.tl-timeline .tl-slide.tl-slide-has-background:not(.tl-slide-titleslide) p {
+  text-shadow: none !important;
+}
+
+/* Headline styling - crisp, dark charcoal contrast on light event card */
+.tl-timeline .tl-slide:not(.tl-slide-titleslide) .tl-headline,
+.tl-timeline .tl-slide:not(.tl-slide-titleslide) h2.tl-headline,
+.tl-timeline .tl-slide.tl-slide-has-background:not(.tl-slide-titleslide) .tl-headline,
+.tl-timeline .tl-slide.tl-slide-has-background:not(.tl-slide-titleslide) h2.tl-headline,
+.tl-timeline .tl-slide.tl-slide-has-background:not(.tl-slide-titleslide) h2,
 .tl-headline {
   color: #1A2121 !important;
   font-weight: 700 !important;
   font-size: 1.75rem !important;
   line-height: 1.25 !important;
   margin-bottom: 0.75rem !important;
+  text-shadow: none !important;
   overflow-wrap: break-word;
 }
 
+/* Headline date - clean copper text with no background or border */
+.tl-timeline .tl-slide:not(.tl-slide-titleslide) .tl-headline-date,
+.tl-timeline .tl-slide:not(.tl-slide-titleslide) h3.tl-headline-date,
+.tl-timeline .tl-slide.tl-slide-has-background:not(.tl-slide-titleslide) .tl-headline-date,
+.tl-timeline .tl-slide.tl-slide-has-background:not(.tl-slide-titleslide) h3.tl-headline-date,
+.tl-timeline .tl-slide.tl-slide-has-background:not(.tl-slide-titleslide) h3,
 .tl-headline-date {
   color: #A55C41 !important;
   font-weight: 600 !important;
+  text-shadow: none !important;
+  background: transparent !important;
+  border: none !important;
+  padding: 0 !important;
 }
 
 /* Text content styling - ensure text is fully visible with crisp contrast */
+.tl-timeline .tl-slide:not(.tl-slide-titleslide) .tl-text,
 .tl-text {
   color: #2D3737 !important;
   max-height: 100% !important;
+  text-shadow: none !important;
 }
 
+.tl-timeline .tl-slide:not(.tl-slide-titleslide) .tl-text-content,
+.tl-timeline .tl-slide:not(.tl-slide-titleslide) .tl-text-content p,
+.tl-timeline .tl-slide.tl-slide-has-background:not(.tl-slide-titleslide) .tl-text-content,
+.tl-timeline .tl-slide.tl-slide-has-background:not(.tl-slide-titleslide) .tl-text-content p,
 .tl-text-content, .tl-text-content p {
   color: #374747 !important;
   font-size: 1rem !important;
   line-height: 1.7 !important;
   margin-bottom: 0.75rem !important;
+  text-shadow: none !important;
   overflow-wrap: break-word;
 }
 
-/* Media handling */
+/* =========================================================
+   Media Handling - Flexible & Responsive across all views
+   (Single, Comparison, Parallel Swimlanes, Fullscreen, Mobile)
+   ========================================================= */
 .tl-media {
-  max-height: 380px !important;
+  max-width: 100% !important;
+  max-height: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  box-sizing: border-box !important;
 }
 
-.tl-media-image img {
-  max-height: 320px !important;
-  object-fit: contain;
+.tl-media .tl-media-content-container,
+.tl-media .tl-media-item,
+.tl-media .tl-media-image {
+  max-width: 100% !important;
+  max-height: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  box-sizing: border-box !important;
+}
+
+/* Images: scale flexibly to available slide height across views */
+.tl-media img,
+.tl-media-image img,
+.tl-media-item img {
+  max-width: 100% !important;
+  max-height: min(44vh, 360px) !important;
+  width: auto !important;
+  height: auto !important;
+  object-fit: contain !important;
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+/* Parallel comparison view: slider area is shallower due to swimlanes */
+.tl-timeline .tl-storyslider .tl-media img,
+.tl-timeline .tl-storyslider .tl-media-image img {
+  max-height: min(38vh, 270px) !important;
+}
+
+/* Videos, iframes, YouTube embeds: keep 16:9 ratio and fit available slide height */
+.tl-media iframe,
+.tl-media video,
+.tl-media-item iframe,
+.tl-media-item video {
+  max-width: 100% !important;
+  max-height: min(38vh, 280px) !important;
+  aspect-ratio: 16 / 9;
+  width: auto !important;
   border-radius: 0.5rem;
 }
 
-.tl-caption, .tl-credit {
+/* Media captions and credits styling - remove redundant shadows in comparison and all slide views */
+.tl-timeline .tl-caption,
+.tl-timeline .tl-caption *,
+.tl-timeline .tl-caption a,
+.tl-timeline .tl-credit,
+.tl-timeline .tl-credit *,
+.tl-timeline .tl-credit a,
+.tl-timeline .tl-media-text,
+.tl-timeline .tl-media-text *,
+.tl-timeline .tl-media-text a,
+.tl-timeline .tl-media-content-container .tl-caption,
+.tl-timeline .tl-media-content-container .tl-caption *,
+.tl-timeline .tl-media-content-container .tl-caption a,
+.tl-timeline .tl-media-content-container .tl-credit,
+.tl-timeline .tl-media-content-container .tl-credit *,
+.tl-timeline .tl-media-content-container .tl-credit a,
+.tl-timeline .tl-media-caption,
+.tl-timeline .tl-media-caption *,
+.tl-timeline .tl-media-caption a,
+.tl-timeline .tl-slide .tl-caption,
+.tl-timeline .tl-slide .tl-caption *,
+.tl-timeline .tl-slide .tl-caption a,
+.tl-timeline .tl-slide .tl-credit,
+.tl-timeline .tl-slide .tl-credit *,
+.tl-timeline .tl-slide .tl-credit a,
+.tl-timeline .tl-slide.tl-slide-has-background .tl-caption,
+.tl-timeline .tl-slide.tl-slide-has-background .tl-caption *,
+.tl-timeline .tl-slide.tl-slide-has-background .tl-caption a,
+.tl-timeline .tl-slide.tl-slide-has-background .tl-credit,
+.tl-timeline .tl-slide.tl-slide-has-background .tl-credit *,
+.tl-timeline .tl-slide.tl-slide-has-background .tl-credit a,
+.tl-timeline .tl-slide.tl-slide-has-background .tl-media-text .tl-caption,
+.tl-timeline .tl-slide.tl-slide-has-background .tl-media-text .tl-caption *,
+.tl-timeline .tl-slide.tl-slide-has-background .tl-media-text .tl-caption a,
+.tl-timeline .tl-slide.tl-slide-has-background .tl-media-text .tl-credit,
+.tl-timeline .tl-slide.tl-slide-has-background .tl-media-text .tl-credit *,
+.tl-timeline .tl-slide.tl-slide-has-background .tl-media-text .tl-credit a,
+.tl-timeline .tl-slide.tl-full-color-background .tl-caption,
+.tl-timeline .tl-slide.tl-full-color-background .tl-caption *,
+.tl-timeline .tl-slide.tl-full-color-background .tl-caption a,
+.tl-timeline .tl-slide.tl-full-color-background .tl-credit,
+.tl-timeline .tl-slide.tl-full-color-background .tl-credit *,
+.tl-timeline .tl-slide.tl-full-color-background .tl-credit a,
+.tl-timeline .tl-slide.tl-full-color-background .tl-media-text .tl-caption,
+.tl-timeline .tl-slide.tl-full-color-background .tl-media-text .tl-caption *,
+.tl-timeline .tl-slide.tl-full-color-background .tl-media-text .tl-caption a,
+.tl-timeline .tl-slide.tl-full-color-background .tl-media-text .tl-credit,
+.tl-timeline .tl-slide.tl-full-color-background .tl-media-text .tl-credit *,
+.tl-timeline .tl-slide.tl-full-color-background .tl-media-text .tl-credit a,
+.tl-timeline .tl-slide.tl-full-image-background .tl-caption,
+.tl-timeline .tl-slide.tl-full-image-background .tl-caption *,
+.tl-timeline .tl-slide.tl-full-image-background .tl-caption a,
+.tl-timeline .tl-slide.tl-full-image-background .tl-credit,
+.tl-timeline .tl-slide.tl-full-image-background .tl-credit *,
+.tl-timeline .tl-slide.tl-full-image-background .tl-credit a,
+.tl-caption, .tl-credit, .tl-caption *, .tl-credit * {
   color: #7A9999 !important;
   font-size: 0.75rem;
+  text-shadow: none !important;
+  box-shadow: none !important;
+}
+
+/* Links inside credit and caption - ensure crisp teal tone without drop shadow */
+.tl-timeline .tl-credit a,
+.tl-timeline .tl-caption a,
+.tl-timeline .tl-slide:not(.tl-slide-titleslide) .tl-credit a,
+.tl-timeline .tl-slide:not(.tl-slide-titleslide) .tl-caption a,
+.tl-timeline .tl-slide.tl-slide-has-background:not(.tl-slide-titleslide) .tl-credit a,
+.tl-timeline .tl-slide.tl-slide-has-background:not(.tl-slide-titleslide) .tl-caption a,
+.tl-timeline .tl-slide.tl-full-color-background:not(.tl-slide-titleslide) .tl-credit a,
+.tl-timeline .tl-slide.tl-full-color-background:not(.tl-slide-titleslide) .tl-caption a,
+.tl-timeline .tl-slide.tl-full-image-background:not(.tl-slide-titleslide) .tl-credit a,
+.tl-timeline .tl-slide.tl-full-image-background:not(.tl-slide-titleslide) .tl-caption a {
+  color: #4E8A8D !important;
+  text-decoration: underline;
+  text-shadow: none !important;
 }
 
 /* =========================================================
@@ -116,7 +313,7 @@ body {
   letter-spacing: 0.03em;
   padding: 5px 14px;
   border-radius: 8px;
-  margin-left: 14px;
+  margin-left: 80px !important;
   background: rgba(12, 16, 16, 0.88) !important;
   border: 1.5px solid rgba(220, 164, 142, 0.5) !important;
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.45);
@@ -321,7 +518,7 @@ body {
   font-weight: 800;
   letter-spacing: -0.02em;
   margin-bottom: 1rem;
-  text-shadow: none;
+  text-shadow: none !important;
 }
 
 .tl-slide.tl-slide-titleslide .tl-text-content,
@@ -329,7 +526,7 @@ body {
   color: #D5E5E5 !important;
   font-size: 1.05rem;
   line-height: 1.7;
-  text-shadow: none;
+  text-shadow: none !important;
 }
 
 /* =========================================================
@@ -343,13 +540,57 @@ body {
   overflow-wrap: break-word;
 }
 
-/* Navigation arrows */
-.tl-slidenav-button,
-.tl-slidenav-next,
-.tl-slidenav-previous {
-  color: #252F2F !important;
+/* =========================================================
+   Slide Navigation (Prev / Next Buttons & Slide Captions)
+   Strip redundant text-shadow and inverted shadows in comparison view
+   ========================================================= */
+.tl-timeline .tl-slidenav-button,
+.tl-timeline .tl-slidenav-previous,
+.tl-timeline .tl-slidenav-next,
+.tl-timeline .tl-slidenav-content-container,
+.tl-timeline .tl-slidenav-content-container *,
+.tl-timeline .tl-slidenav-title,
+.tl-timeline .tl-slidenav-description,
+.tl-timeline .tl-slidenav-icon,
+.tl-timeline .tl-slidenav-content-container.tl-slidenav-inverted,
+.tl-timeline .tl-slidenav-content-container.tl-slidenav-inverted *,
+.tl-timeline .tl-slidenav-content-container.tl-slidenav-inverted .tl-slidenav-title,
+.tl-timeline .tl-slidenav-content-container.tl-slidenav-inverted .tl-slidenav-description,
+.tl-timeline .tl-slidenav-content-container.tl-slidenav-inverted .tl-slidenav-icon,
+.tl-timeline .tl-slidenav-previous:hover .tl-slidenav-content-container,
+.tl-timeline .tl-slidenav-next:hover .tl-slidenav-content-container,
+.tl-timeline .tl-slidenav-previous:hover .tl-slidenav-content-container *,
+.tl-timeline .tl-slidenav-next:hover .tl-slidenav-content-container * {
+  text-shadow: none !important;
+  box-shadow: none !important;
 }
 
-.tl-slidenav-icon {
+.tl-timeline .tl-slidenav-button,
+.tl-timeline .tl-slidenav-next,
+.tl-timeline .tl-slidenav-previous {
+  color: #252F2F !important;
+  text-shadow: none !important;
+}
+
+.tl-timeline .tl-slidenav-icon {
   fill: #252F2F !important;
+  color: #252F2F !important;
+  text-shadow: none !important;
+}
+
+.tl-timeline .tl-slidenav-title,
+.tl-timeline .tl-slidenav-content-container.tl-slidenav-inverted .tl-slidenav-title,
+.tl-timeline .tl-slidenav-previous .tl-slidenav-content-container .tl-slidenav-title,
+.tl-timeline .tl-slidenav-next .tl-slidenav-content-container .tl-slidenav-title {
+  color: #252F2F !important;
+  font-weight: 600 !important;
+  text-shadow: none !important;
+}
+
+.tl-timeline .tl-slidenav-description,
+.tl-timeline .tl-slidenav-content-container.tl-slidenav-inverted .tl-slidenav-description,
+.tl-timeline .tl-slidenav-previous .tl-slidenav-content-container .tl-slidenav-description,
+.tl-timeline .tl-slidenav-next .tl-slidenav-content-container .tl-slidenav-description {
+  color: #4D6363 !important;
+  text-shadow: none !important;
 }
