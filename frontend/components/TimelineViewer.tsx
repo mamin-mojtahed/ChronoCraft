@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useCallback } from "react";
 import { TimelineData, TimelineSlide, formatEventDate } from "@/types/timeline";
 import {
   Download,
@@ -26,12 +26,17 @@ interface TimelineViewerProps {
 }
 
 export const TimelineViewer: React.FC<TimelineViewerProps> = ({ data, title }) => {
+  const rootRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const timelineInstanceRef = useRef<any>(null);
+  const isNavHoveredRef = useRef(false);
+  const currentSlideIdRef = useRef<string | null>(null);
+
   const [scriptLoaded, setScriptLoaded] = useState(false);
   const [renderKey, setRenderKey] = useState(0);
   const [showOutline, setShowOutline] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [isNavRevealed, setIsNavRevealed] = useState(false);
   const [savedComparison, setSavedComparison] = useState(false);
 
   const {
@@ -103,6 +108,16 @@ export const TimelineViewer: React.FC<TimelineViewerProps> = ({ data, title }) =
           : 36
         : 28;
 
+      let startSlide = 0;
+      if (currentSlideIdRef.current && data.events) {
+        const foundIdx = data.events.findIndex(
+          (e) => e.unique_id === currentSlideIdRef.current || e.text?.headline === currentSlideIdRef.current
+        );
+        if (foundIdx !== -1) {
+          startSlide = data.title ? foundIdx + 1 : foundIdx;
+        }
+      }
+
       const options = {
         hash_bookmark: false,
         initial_zoom: 1,
@@ -114,6 +129,7 @@ export const TimelineViewer: React.FC<TimelineViewerProps> = ({ data, title }) =
         slide_padding_lr: 30,
         debug: false,
         is_embed: true,
+        start_at_slide: startSlide,
       };
 
       timelineInstanceRef.current = new (window as any).TL.Timeline(embedId, data, options);
@@ -196,7 +212,11 @@ export const TimelineViewer: React.FC<TimelineViewerProps> = ({ data, title }) =
                   box.style.setProperty("background-color", track.color.hex, "important");
                   box.style.setProperty("border-radius", "6px", "important");
                   box.style.setProperty("border", `1px solid ${track.color.border}`, "important");
-                  box.style.setProperty("box-shadow", "0 2px 6px rgba(0, 0, 0, 0.35)", "important");
+                  box.style.setProperty(
+                    "box-shadow",
+                    "0 4px 14px rgba(0, 0, 0, 0.65), 0 1px 4px rgba(0, 0, 0, 0.4)",
+                    "important"
+                  );
                 }
                 const h2 = marker.querySelector<HTMLElement>(".tl-timemarker-text h2");
                 if (h2) {
@@ -245,7 +265,11 @@ export const TimelineViewer: React.FC<TimelineViewerProps> = ({ data, title }) =
                   `1px solid ${currentTrackColor.border}`,
                   "important"
                 );
-                box.style.setProperty("box-shadow", "0 2px 6px rgba(0, 0, 0, 0.35)", "important");
+                box.style.setProperty(
+                  "box-shadow",
+                  "0 4px 14px rgba(0, 0, 0, 0.65), 0 1px 4px rgba(0, 0, 0, 0.4)",
+                  "important"
+                );
               }
               const h2 = marker.querySelector<HTMLElement>(".tl-timemarker-text h2");
               if (h2) {
@@ -279,7 +303,14 @@ export const TimelineViewer: React.FC<TimelineViewerProps> = ({ data, title }) =
       setTimeout(applyMarkerColors, 500);
 
       if (timelineInstanceRef.current?.on) {
-        timelineInstanceRef.current.on("change", () => setTimeout(applyMarkerColors, 30));
+        timelineInstanceRef.current.on("change", (e: any) => {
+          if (e?.unique_id) {
+            currentSlideIdRef.current = e.unique_id;
+          } else if (timelineInstanceRef.current?.current_id) {
+            currentSlideIdRef.current = timelineInstanceRef.current.current_id;
+          }
+          setTimeout(applyMarkerColors, 30);
+        });
         timelineInstanceRef.current.on("nav_move", () => setTimeout(applyMarkerColors, 30));
       }
     } catch (err) {
@@ -289,6 +320,7 @@ export const TimelineViewer: React.FC<TimelineViewerProps> = ({ data, title }) =
     scriptLoaded,
     data,
     renderKey,
+    isFullscreen,
     isComparison,
     comparisonViewMode,
     comparisonTracks,
@@ -303,6 +335,82 @@ export const TimelineViewer: React.FC<TimelineViewerProps> = ({ data, title }) =
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
+
+  // Listen to browser fullscreen changes (e.g. user pressing Esc or browser UI)
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      const active = Boolean(
+        document.fullscreenElement || (document as any).webkitFullscreenElement
+      );
+      setIsFullscreen(active);
+      if (active) {
+        setIsNavRevealed(true);
+      } else {
+        setIsNavRevealed(false);
+      }
+    };
+
+    document.addEventListener("fullscreenchange", handleFullscreenChange);
+    document.addEventListener("webkitfullscreenchange", handleFullscreenChange);
+    return () => {
+      document.removeEventListener("fullscreenchange", handleFullscreenChange);
+      document.removeEventListener("webkitfullscreenchange", handleFullscreenChange);
+    };
+  }, []);
+
+  // Toggle fullscreen mode
+  const toggleFullscreen = useCallback(async () => {
+    if (!isFullscreen) {
+      setIsFullscreen(true);
+      setIsNavRevealed(true);
+      try {
+        const root = rootRef.current;
+        if (root && !document.fullscreenElement) {
+          if (root.requestFullscreen) {
+            await root.requestFullscreen();
+          } else if ((root as any).webkitRequestFullscreen) {
+            await (root as any).webkitRequestFullscreen();
+          }
+        }
+      } catch (err) {
+        console.warn("Fullscreen API failed, falling back to CSS fullscreen:", err);
+      }
+    } else {
+      setIsFullscreen(false);
+      setIsNavRevealed(false);
+      try {
+        if (document.fullscreenElement) {
+          if (document.exitFullscreen) {
+            await document.exitFullscreen();
+          } else if ((document as any).webkitExitFullscreen) {
+            await (document as any).webkitExitFullscreen();
+          }
+        }
+      } catch (err) {
+        console.warn("Exit fullscreen failed:", err);
+      }
+    }
+  }, [isFullscreen]);
+
+  // Keyboard shortcut: Escape to exit fullscreen
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && isFullscreen) {
+        toggleFullscreen();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isFullscreen, toggleFullscreen]);
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isFullscreen) return;
+    if (e.clientY <= 50) {
+      setIsNavRevealed(true);
+    } else if (e.clientY > 90 && !isNavHoveredRef.current) {
+      setIsNavRevealed(false);
+    }
+  };
 
   const handleExportJson = () => {
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
@@ -329,33 +437,66 @@ export const TimelineViewer: React.FC<TimelineViewerProps> = ({ data, title }) =
 
   return (
     <div
-      className={`flex flex-col w-full bg-white relative transition-all duration-300 ${
-        isFullscreen ? "fixed inset-0 z-50 h-screen" : ""
+      ref={rootRef}
+      onMouseMove={handleMouseMove}
+      className={`w-full bg-white relative transition-all duration-300 ${
+        isFullscreen
+          ? "fixed inset-0 z-[100] w-screen h-screen overflow-hidden flex flex-col"
+          : "flex flex-col relative"
       }`}
+      style={!isFullscreen ? { height: "calc(100vh - 64px)", minHeight: "calc(100vh - 64px)" } : undefined}
     >
-      {/* Timeline Action Header Bar */}
-      <div className="flex items-center justify-between px-4 sm:px-6 py-2.5 border-b border-brand-100 bg-brand-50/90 backdrop-blur-sm z-10 flex-shrink-0 gap-2">
-        <div className="flex items-center gap-3">
-          <div className="p-1.5 rounded-lg bg-copper-100 text-copper-700">
+      {/* Top invisible trigger zone for hover in fullscreen mode */}
+      {isFullscreen && (
+        <div
+          className="absolute top-0 left-0 right-0 h-6 z-40 pointer-events-auto"
+          onMouseEnter={() => setIsNavRevealed(true)}
+        />
+      )}
+
+      {/* Timeline Action Header Bar / Nav Bar */}
+      <div
+        onMouseEnter={() => {
+          isNavHoveredRef.current = true;
+          setIsNavRevealed(true);
+        }}
+        onMouseLeave={(e) => {
+          isNavHoveredRef.current = false;
+          if (isFullscreen && e.clientY > 60) {
+            setIsNavRevealed(false);
+          }
+        }}
+        className={`h-14 min-h-[56px] max-h-[56px] flex items-center justify-between px-4 sm:px-6 border-b border-brand-100 bg-brand-50/95 backdrop-blur-md z-50 gap-2 transition-all duration-300 ease-in-out ${
+          isFullscreen
+            ? `absolute top-0 left-0 right-0 shadow-lg ${
+                isNavRevealed
+                  ? "translate-y-0 opacity-100 pointer-events-auto"
+                  : "-translate-y-full opacity-0 pointer-events-none"
+              }`
+            : "relative z-10 flex-shrink-0"
+        }`}
+      >
+        <div className="flex items-center gap-3 min-w-0">
+          <div className="p-1.5 rounded-lg bg-copper-100 text-copper-700 flex-shrink-0">
             {isComparison ? (
               <Layers className="w-4 h-4 text-copper-600" />
             ) : (
               <Clock className="w-4 h-4 text-copper-600" />
             )}
           </div>
-          <div>
+          <div className="min-w-0">
             <div className="flex items-center gap-2">
-              <h2 className="font-bold text-brand-900 text-sm sm:text-base leading-tight">
+              <h2 className="font-bold text-brand-900 text-sm sm:text-base leading-tight truncate">
                 {title || data.title?.text?.headline || "Interactive Timeline"}
               </h2>
             </div>
-            <p className="text-xs text-brand-600">
+            <p className="text-xs text-brand-600 truncate">
               {data.events?.length || 0} chronological milestones
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-2 flex-wrap">
+        <div className="flex items-center gap-2 flex-shrink-0">
           {/* Save Comparison to History Button */}
           {isComparison && (
             <button
@@ -388,7 +529,10 @@ export const TimelineViewer: React.FC<TimelineViewerProps> = ({ data, title }) =
           {/* Edit Timeline & Events Button */}
           {currentRecord && !isComparison && (
             <button
-              onClick={() => setEditingTimelineRecord(currentRecord)}
+              onClick={() => {
+                if (isFullscreen) toggleFullscreen();
+                setEditingTimelineRecord(currentRecord);
+              }}
               className="p-2 rounded-lg bg-white border border-brand-200 text-xs font-medium text-brand-700 hover:bg-brand-100/60 flex items-center gap-1.5 transition-colors"
               title="Edit timeline details and events"
             >
@@ -435,9 +579,9 @@ export const TimelineViewer: React.FC<TimelineViewerProps> = ({ data, title }) =
           </button>
 
           <button
-            onClick={() => setIsFullscreen(!isFullscreen)}
+            onClick={toggleFullscreen}
             className="p-2 rounded-lg bg-white border border-brand-200 text-brand-700 hover:bg-brand-100/60 transition-colors"
-            title={isFullscreen ? "Exit fullscreen" : "Fullscreen view"}
+            title={isFullscreen ? "Exit fullscreen (Esc)" : "Fullscreen view"}
           >
             {isFullscreen ? <Minimize2 className="w-3.5 h-3.5" /> : <Maximize2 className="w-3.5 h-3.5" />}
           </button>
@@ -450,14 +594,9 @@ export const TimelineViewer: React.FC<TimelineViewerProps> = ({ data, title }) =
         <div
           className="flex-1 w-full relative"
           style={{
-            height: isFullscreen
-              ? isComparison
-                ? "calc(100vh - 90px)"
-                : "calc(100vh - 54px)"
-              : isComparison
-              ? "calc(100vh - 200px)"
-              : "calc(100vh - 165px)",
-            minHeight: "560px",
+            height: isFullscreen ? "100vh" : "calc(100vh - 120px)",
+            minHeight: isFullscreen ? "100vh" : "calc(100vh - 120px)",
+            maxHeight: isFullscreen ? "100vh" : "calc(100vh - 120px)",
           }}
         >
           {!scriptLoaded && (
@@ -473,27 +612,15 @@ export const TimelineViewer: React.FC<TimelineViewerProps> = ({ data, title }) =
 
         {/* Event List Outline Panel with Track & Card Distinction */}
         <aside
-          className={`border-brand-200 bg-white flex flex-col z-20 flex-shrink-0 overflow-hidden transition-all duration-300 ease-in-out ${
+          className={`border-brand-200 bg-white flex flex-col z-40 flex-shrink-0 overflow-hidden transition-all duration-300 ease-in-out ${
             showOutline
               ? "w-80 sm:w-96 translate-x-0 visible pointer-events-auto opacity-100 shadow-xl border-l"
               : "w-0 translate-x-full invisible pointer-events-none opacity-0 border-l-0"
           }`}
           style={{
-            height: isFullscreen
-              ? isComparison
-                ? "calc(100vh - 90px)"
-                : "calc(100vh - 54px)"
-              : isComparison
-              ? "calc(100vh - 200px)"
-              : "calc(100vh - 165px)",
-            maxHeight: isFullscreen
-              ? isComparison
-                ? "calc(100vh - 90px)"
-                : "calc(100vh - 54px)"
-              : isComparison
-              ? "calc(100vh - 200px)"
-              : "calc(100vh - 165px)",
-            minHeight: "560px",
+            height: isFullscreen ? "100vh" : "calc(100vh - 120px)",
+            maxHeight: isFullscreen ? "100vh" : "calc(100vh - 120px)",
+            minHeight: isFullscreen ? "100vh" : "calc(100vh - 120px)",
           }}
         >
           <div className="w-80 sm:w-96 h-full flex flex-col flex-shrink-0 min-h-0">
@@ -520,6 +647,7 @@ export const TimelineViewer: React.FC<TimelineViewerProps> = ({ data, title }) =
                   <button
                     type="button"
                     onClick={() => {
+                      if (isFullscreen) toggleFullscreen();
                       const defaultNewEvent: TimelineSlide = {
                         unique_id: `evt-${Date.now()}`,
                         start_date: {
@@ -628,6 +756,7 @@ export const TimelineViewer: React.FC<TimelineViewerProps> = ({ data, title }) =
                         <button
                           type="button"
                           onClick={() => {
+                            if (isFullscreen) toggleFullscreen();
                             const recordId = (evt as any).sourceRecordId || currentRecord?.id;
                             if (!recordId) return;
                             const sourceRec = history.find((h) => h.id === recordId) || currentRecord;

@@ -130,7 +130,7 @@ export default function Home() {
       <main
         className={`flex-1 flex flex-col pt-16 transition-all duration-300 w-full overflow-x-hidden ${
           sidebarOpen ? "sm:pl-80" : "pl-0"
-        }`}
+        } ${currentTimeline && !error ? "overflow-y-hidden" : ""}`}
       >
         {/* Error Notification Banner */}
         {error && (
@@ -195,7 +195,7 @@ export default function Home() {
             </div>
           </div>
         ) : currentTimeline ? (
-          <div className="flex-1 flex flex-col">
+          <div className="flex-1 flex flex-col w-full h-full">
             <TimelineViewer data={currentTimeline} title={currentRecord?.title} />
           </div>
         ) : (
